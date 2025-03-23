@@ -1,0 +1,28 @@
+../Core/Src/EPD_4in26.cpp:30:1:EPD_4in26::EPD_4in26()	1
+../Core/Src/EPD_4in26.cpp:39:1:EPD_4in26::EPD_4in26(GPIO_TypeDef*, uint16_t, GPIO_TypeDef*, uint16_t, GPIO_TypeDef*, uint16_t, GPIO_TypeDef*, uint16_t, GPIO_TypeDef*, uint16_t, SPI_HandleTypeDef*)	1
+../Core/Src/EPD_4in26.cpp:77:5:int EPD_4in26::pinInit()	1
+../Core/Src/EPD_4in26.cpp:86:6:void EPD_4in26::pinExit()	1
+../Core/Src/EPD_4in26.cpp:101:6:void EPD_4in26::EPD_4in26_Reset()	1
+../Core/Src/EPD_4in26.cpp:116:6:void EPD_4in26::EPD_4in26_SendCommand(uint8_t)	1
+../Core/Src/EPD_4in26.cpp:143:6:void EPD_4in26::EPD_4in26_SendData(uint8_t)	1
+../Core/Src/EPD_4in26.cpp:151:6:void EPD_4in26::EPD_4in26_SendData2(uint8_t*, uint32_t)	1
+../Core/Src/EPD_4in26.cpp:173:6:void EPD_4in26::EPD_4in26_ReadBusy()	2
+../Core/Src/EPD_4in26.cpp:197:6:void EPD_4in26::EPD_4in26_TurnOnDisplay()	1
+../Core/Src/EPD_4in26.cpp:205:6:void EPD_4in26::EPD_4in26_TurnOnDisplay_Fast()	1
+../Core/Src/EPD_4in26.cpp:213:6:void EPD_4in26::EPD_4in26_TurnOnDisplay_Part()	1
+../Core/Src/EPD_4in26.cpp:221:6:void EPD_4in26::EPD_4in26_TurnOnDisplay_4GRAY()	1
+../Core/Src/EPD_4in26.cpp:233:6:void EPD_4in26::EPD_4in26_Lut()	2
+../Core/Src/EPD_4in26.cpp:257:6:void EPD_4in26::EPD_4in26_SetWindows(uint16_t, uint16_t, uint16_t, uint16_t)	1
+../Core/Src/EPD_4in26.cpp:276:6:void EPD_4in26::EPD_4in26_SetCursor(uint16_t, uint16_t)	1
+../Core/Src/EPD_4in26.cpp:291:6:void EPD_4in26::EPD_4in26_Init()	1
+../Core/Src/EPD_4in26.cpp:328:6:void EPD_4in26::EPD_4in26_Init_Fast()	1
+../Core/Src/EPD_4in26.cpp:375:6:void EPD_4in26::EPD_4in26_Init_4GRAY()	1
+../Core/Src/EPD_4in26.cpp:418:6:void EPD_4in26::EPD_4in26_Clear()	3
+../Core/Src/EPD_4in26.cpp:446:6:void EPD_4in26::EPD_4in26_Display(uint8_t*)	2
+../Core/Src/EPD_4in26.cpp:460:6:void EPD_4in26::EPD_4in26_Display_Base(const uint8_t*)	3
+../Core/Src/EPD_4in26.cpp:487:6:void EPD_4in26::EPD_4in26_Display_Fast(const uint8_t*)	2
+../Core/Src/EPD_4in26.cpp:503:6:void EPD_4in26::EPD_4in26_Display_Part(const uint8_t*, uint16_t, uint16_t, uint16_t, uint16_t)	3
+../Core/Src/EPD_4in26.cpp:527:6:void EPD_4in26::EPD_4in26_Display_Part2(const uint8_t*, uint16_t, uint16_t, uint16_t, uint16_t)	4
+../Core/Src/EPD_4in26.cpp:559:6:void EPD_4in26::EPD_4in26_WriteToBuffer(const uint8_t*, uint16_t, uint16_t, uint16_t, uint16_t)	3
+../Core/Src/EPD_4in26.cpp:586:6:void EPD_4in26::EPD_4in26_4GrayDisplay(const uint8_t*)	25
+../Core/Src/EPD_4in26.cpp:679:6:void EPD_4in26::EPD_4in26_Sleep()	1

@@ -8,4 +8,5 @@
 ../Core/Src/stm32wbxx_it.c:179:6:EXTI1_IRQHandler	8	static
 ../Core/Src/stm32wbxx_it.c:193:6:EXTI2_IRQHandler	8	static
 ../Core/Src/stm32wbxx_it.c:207:6:EXTI3_IRQHandler	8	static
-../Core/Src/stm32wbxx_it.c:221:6:TIM1_TRG_COM_TIM17_IRQHandler	8	static
+../Core/Src/stm32wbxx_it.c:221:6:EXTI4_IRQHandler	8	static
+../Core/Src/stm32wbxx_it.c:235:6:TIM1_TRG_COM_TIM17_IRQHandler	8	static

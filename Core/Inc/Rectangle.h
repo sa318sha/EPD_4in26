@@ -13,7 +13,7 @@
 
 class Rectangle: public Drawable
 {
-private:
+protected:
 	// TODO
 	// appropriate manipulation techniques
 	UWORD xStart,yStart, xEnd, yEnd, color;
@@ -22,25 +22,20 @@ private:
   /* data */
 public:
 
-//	using Callback = std::function<void()>;
+	void draw(FrameBuffer& fb, UWORD xStart = 0, UWORD yStart =0) override {
 
-    void draw(FrameBuffer& fb, UWORD xStart = 0, UWORD yStart =0) override {
-    	fb.Paint_DrawRectangle(this->xStart + xStart, this->yStart+ yStart, xEnd+ xStart, yEnd+ yStart, color, lineWidth, fill);
+		if (updated || firstDraw ){
+			fb.Paint_DrawRectangle(this->xStart + xStart, this->yStart+ yStart, xEnd+ xStart, yEnd+ yStart, color, lineWidth, fill);
+		}
+		firstDraw = false;
+		updated = false;
     }
 
-    void clearArea(FrameBuffer& fb) override {
-    	fb.Paint_ClearWindows(xStart, yStart, xEnd, yEnd, color==BLACK?WHITE:BLACK);
+    void clearArea(FrameBuffer& fb, UWORD xStart = 0, UWORD yStart =0) override {
+//    	updated = true;
+    	fb.Paint_ClearWindows(this->xStart + xStart, this->yStart+ yStart, xEnd+ xStart, yEnd+ yStart, color==BLACK?WHITE:BLACK);
     }
 
-    void highlight(bool isSelected) override{
-    	if(!interactable())
-    		return;
-    	if(isSelected){
-    		this->fill = DRAW_FILL_FULL;
-    	}else {
-    		this->fill = DRAW_FILL_EMPTY;
-    	}
-    }
 
     Rectangle(UWORD xStart, UWORD yStart, UWORD xEnd, UWORD yEnd, UWORD color, DOT_PIXEL lineWidth, DRAW_FILL fill,
     		Callback onSelect = nullptr,
@@ -102,5 +97,27 @@ public:
 	}
 
 };
+
+class HighLightOnInteractRectangle: public Rectangle {
+public:
+	HighLightOnInteractRectangle(
+			UWORD xStart, UWORD yStart, UWORD xEnd, UWORD yEnd,
+			UWORD color, DOT_PIXEL lineWidth, DRAW_FILL fill,
+			Callback onSelect = nullptr,
+			UWORD Rotate_ = ROTATE_0, UWORD Mirror_ = MIRROR_NONE, UWORD layer_ = 0 ):
+		Rectangle(xStart, yStart, xEnd, yEnd, color, lineWidth, fill, onSelect, Rotate_, Mirror_,  layer_)
+	    {}
+private:
+	virtual void highlight(bool isSelected) override{
+		if(isSelected){
+			this->fill = DRAW_FILL_FULL;
+		}else {
+			this->fill = DRAW_FILL_EMPTY;
+		}
+		updated = true;
+	}
+};
+
+
 
 #endif /* INC_RECTANGLE_H_ */

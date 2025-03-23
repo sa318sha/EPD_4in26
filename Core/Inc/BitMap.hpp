@@ -18,7 +18,10 @@ public:
 
 	void draw(FrameBuffer& fb, UWORD xMove= 0, UWORD yMove=0) override{
 //		LOG_WARN("x: %i, y: %i", this->xStart + xMove,this->yStart + yMove);
-		fb.Paint_DrawBitMap_Paste(img, this->xStart + xMove, this->yStart + yMove, width , height , flipColour);
+		if(updated){
+			fb.Paint_DrawBitMap_Paste(img, this->xStart + xMove, this->yStart + yMove, width , height , flipColour);
+		}
+		updated = false;
 	}
 
 	void highlight(bool isSelected) override{};

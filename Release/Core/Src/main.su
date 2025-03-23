@@ -1,0 +1,7 @@
+../Core/Src/main.cpp:431:6:void EPaperEntry(void*)	8	static
+../Core/Src/main.cpp:88:6:void HAL_GPIO_EXTI_Callback(uint16_t)	16	static,ignoring_inline_asm
+../Core/Src/main.cpp:256:6:void SystemClock_Config()	112	static,ignoring_inline_asm
+../Core/Src/main.cpp:302:6:void PeriphCommonClock_Config()	88	static,ignoring_inline_asm
+../Core/Src/main.cpp:143:5:int main()	40	static,ignoring_inline_asm
+../Core/Src/main.cpp:451:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	0	static
+../Core/Src/main.cpp:468:6:void Error_Handler()	0	static,ignoring_inline_asm

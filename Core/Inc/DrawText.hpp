@@ -13,7 +13,7 @@
 
 class DrawText: public Drawable
 {
-private:
+protected:
 
 	UWORD Xstart;
 	UWORD Ystart;
@@ -28,17 +28,19 @@ private:
 public:
 
     void draw(FrameBuffer& fb, UWORD xMove = 0, UWORD yMove = 0) override{
-    	if(pTime == nullptr)
-    		fb.Paint_DrawString_EN( Xstart + xMove,  Ystart + yMove,  pString, Font,  Color_Foreground,  Color_Background); // we want to pass in a array
-    	else{
-    		fb.Paint_DrawTime(Xstart + xMove, Ystart + yMove, pTime, Font, Color_Foreground, Color_Background);
+    	if(updated){
+			if(pTime == nullptr)
+				fb.Paint_DrawString_EN( Xstart + xMove,  Ystart + yMove,  pString, Font,  Color_Foreground,  Color_Background); // we want to pass in a array
+			else{
+				fb.Paint_DrawTime(Xstart + xMove, Ystart + yMove, pTime, Font, Color_Foreground, Color_Background);
+			}
     	}
+    	updated = false;
     }
 
-    void highlight(bool isSelected) override{
-
+    void updatedText(){
+    	updated = true;
     }
-
     DrawText() = delete;
 
     DrawText(UWORD Xstart, UWORD Ystart, const char * pString, sFONT* Font, UWORD Color_Foreground, UWORD Color_Background):
@@ -54,7 +56,31 @@ public:
 };
 
 
+class HighlightableDrawText: public DrawText {
+public:
+	HighlightableDrawText(UWORD Xstart, UWORD Ystart, const char * pString, sFONT* Font, UWORD Color_Foreground, UWORD Color_Background):
+		DrawText( Xstart,  Ystart,  pString, Font, Color_Foreground, Color_Background) {}
 
+	HighlightableDrawText(UWORD Xstart, UWORD Ystart, PAINT_TIME *pTime, sFONT* Font,UWORD Color_Foreground, UWORD Color_Background):
+		DrawText( Xstart,  Ystart, pTime,  Font, Color_Foreground,  Color_Background) {}
+
+	HighlightableDrawText() = delete;
+
+    void highlight(bool isSelected) override{
+
+		if(isSelected){
+			this->Color_Foreground = BLACK;
+			this->Color_Background = WHITE;
+
+		}else {
+			this->Color_Foreground = WHITE;
+			this->Color_Background = BLACK;
+
+		}
+		updated = true;
+    }
+
+};
 
 
 

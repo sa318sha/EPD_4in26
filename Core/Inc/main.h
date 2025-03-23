@@ -70,6 +70,9 @@ void Error_Handler(void);
 #define Button_4_Pin GPIO_PIN_3
 #define Button_4_GPIO_Port GPIOC
 #define Button_4_EXTI_IRQn EXTI3_IRQn
+#define Button_5_Pin GPIO_PIN_4
+#define Button_5_GPIO_Port GPIOC
+#define Button_5_EXTI_IRQn EXTI4_IRQn
 
 /* USER CODE BEGIN Private defines */
 #define EPD_4in26_WIDTH 800

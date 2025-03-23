@@ -9,51 +9,95 @@
 #define INC_CONTAINER_H_
 
 #include "Drawable.h"
-#include <vector>
+//#include <vector>
+
+#define MAX_CONTAINER_DRAWABLES 10  // Set a reasonable limit for contained drawables
 
 class Container: public Drawable {
 public:
 	Container(UWORD xStart, UWORD yStart, UWORD xEnd, UWORD yEnd, Callback cb = nullptr):
 		Drawable(cb),
-		xStart(xStart), yStart(yStart), xEnd(xEnd), yEnd(yEnd)
-//	, XLength(XEnd-XStart), YLength(YEnd - YStart)
+		xStart(xStart), yStart(yStart), xEnd(xEnd), yEnd(yEnd), drawableCount(0)
 	{
 
 	}
-//	void draw()
     void draw(FrameBuffer& fb, UWORD xMove = 0, UWORD yMove =0) override{
     	//TODO displace draws in the container?
 
-//    	FrambeBuffer duplicate = Framebuffer(XLength, YLength, fb.getRotate(),fb.getColor());
     	UWORD x = xStart + xMove;
     	UWORD y = yStart + yMove;
 
+        for (int i = 0; i < drawableCount; i++) {
+			if(updated){
+				drawables[i]->clearArea(fb, x, y);
+			}
+			if(!hide){
+				drawables[i]->draw(fb, x, y);
+			}
+        }
+        updated = false;
 
-    	for (Drawable* draws: drawables){
-    		draws->draw(fb, x,y);
-    	}
+    }
 
-//    	fb.apply(duplicate);
+    void resetUpdated() override{
+        for (int i = 0; i < drawableCount; i++) {
+            drawables[i]->resetUpdated();
+        }
     }
 
     void highlight(bool isSelected) override{
-    	for (Drawable* draws: drawables){
-			draws->highlight(isSelected);
-		}
+    	updated = true;
+    	for (int i = 0; i < drawableCount; i++) {
+            drawables[i]->highlight(isSelected);
+        }
     }
 
     void addDrawable(Drawable * draw){
-    	drawables.push_back(draw);
+        if (drawableCount < MAX_CONTAINER_DRAWABLES) {
+            drawables[drawableCount++] = draw;
+        }
     }
+
+	UWORD getXEnd() const {
+		return xEnd;
+	}
+
+	void setXEnd(UWORD xEnd) {
+		this->xEnd = xEnd;
+	}
+
+	UWORD getXStart() const {
+		return xStart;
+	}
+
+	void setXStart(UWORD xStart) {
+		this->xStart = xStart;
+	}
+
+	UWORD getYEnd() const {
+		return yEnd;
+	}
+
+	void setYEnd(UWORD yEnd) {
+		this->yEnd = yEnd;
+	}
+
+	UWORD getYStart() const {
+		return yStart;
+	}
+
+	void setYStart(UWORD yStart) {
+		this->yStart = yStart;
+	}
 
 private:
     UWORD xStart;
     UWORD yStart;
     UWORD xEnd;
     UWORD yEnd;
-//    UWORD XLength;
-//    UWORD YLength;
-	std::vector<Drawable *> drawables;
+
+    Drawable* drawables[MAX_CONTAINER_DRAWABLES]; // Fixed-size array
+    int drawableCount;
 };
 
 

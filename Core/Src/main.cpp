@@ -52,7 +52,7 @@ SPI_HandleTypeDef hspi1;
 osThreadId_t EPaperHandle;
 const osThreadAttr_t EPaper_attributes = {
   .name = "EPaper",
-  .stack_size = 1024 * 4,
+  .stack_size = 1536 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 
 };
@@ -73,6 +73,11 @@ const osSemaphoreAttr_t myBinarySem02_attributes = {
 QueueHandle_t stateQueue;
 
 QueueHandle_t buttonQueue;
+
+QueueHandle_t dataSetPointOperationQueue;
+
+
+QueueHandle_t daySelectionQueue;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -85,7 +90,7 @@ void EPaperEntry(void *argument);
 /* USER CODE BEGIN PFP */
 
 #define DEBOUNCE_DELAY_MS 200  // Adjust debounce time as needed
-void HAL_GPIO_EXTI_Callback(uint16_t pin){\
+void HAL_GPIO_EXTI_Callback(uint16_t pin){
 
 
     static uint32_t lastPressTime = 0;  // Store last press time
@@ -104,18 +109,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t pin){\
 		stateToSend = Button::Up;
 		break;
 	case(Button_2_Pin):
-		stateToSend = Button::Left;
+		stateToSend = Button::Right;
 		break;
 	case(Button_3_Pin):
 		stateToSend = Button::Middle;
 		break;
 	case(Button_4_Pin):
-		stateToSend = Button::Right;
+		stateToSend = Button::Left;
 		break;
-	//TODO NOT IMPLEMENTED
-//	case(Button_1_Pin):
-//		stateToSend = State::Down;
-//		break;
+	case(Button_5_Pin):
+		stateToSend = Button::Down;
+		break;
+
 	default:
 		break;
 	}
@@ -198,11 +203,16 @@ int main(void)
       printf("Failed to create queue!\n");
   }
 
-  ButtonQueue  = xQueueCreate(5, sizeof(State));  // Queue can hold 5 events
-  if (ButtonQueue == NULL) {
+  buttonQueue  = xQueueCreate(5, sizeof(State));  // Queue can hold 5 events
+  if (buttonQueue == NULL) {
       printf("Failed to create queue!\n");
   }
 
+  dataSetPointOperationQueue  = xQueueCreate(5, sizeof(SetPointData));  // Queue can hold 5 events
+  if (dataSetPointOperationQueue == NULL) {
+      printf("Failed to create queue!\n");
+  }
+//  dataSetPointOperationQueue
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
@@ -338,7 +348,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -362,49 +372,53 @@ static void MX_SPI1_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
-	  GPIO_InitTypeDef GPIO_InitStruct = {0};
-	/* USER CODE BEGIN MX_GPIO_Init_1 */
-	/* USER CODE END MX_GPIO_Init_1 */
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
-	  /* GPIO Ports Clock Enable */
-	  __HAL_RCC_GPIOC_CLK_ENABLE();
-	  __HAL_RCC_GPIOA_CLK_ENABLE();
-	  __HAL_RCC_GPIOB_CLK_ENABLE();
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
 
-	  /*Configure GPIO pin Output Level */
-	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_9, GPIO_PIN_RESET);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_9, GPIO_PIN_RESET);
 
-	  /*Configure GPIO pins : Button_1_Pin Button_2_Pin Button_3_Pin Button_4_Pin */
-	  GPIO_InitStruct.Pin = Button_1_Pin|Button_2_Pin|Button_3_Pin|Button_4_Pin;
-	  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-	  GPIO_InitStruct.Pull = GPIO_PULLUP;
-	  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  /*Configure GPIO pins : Button_1_Pin Button_2_Pin Button_3_Pin Button_4_Pin
+						   Button_5_Pin */
+  GPIO_InitStruct.Pin = Button_1_Pin|Button_2_Pin|Button_3_Pin|Button_4_Pin
+						  |Button_5_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-	  /*Configure GPIO pins : PA3 PA5 PA6 PA9 */
-	  GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_9;
-	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	  GPIO_InitStruct.Pull = GPIO_NOPULL;
-	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  /*Configure GPIO pins : PA3 PA5 PA6 PA9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	  /*Configure GPIO pin : PA8 */
-	  GPIO_InitStruct.Pin = GPIO_PIN_8;
-	  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-	  GPIO_InitStruct.Pull = GPIO_NOPULL;
-	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  /*Configure GPIO pin : PA8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	  /* EXTI interrupt init*/
-	  HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
-	  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
-	  HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
-	  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
 
-	  HAL_NVIC_SetPriority(EXTI2_IRQn, 5, 0);
-	  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
-	  HAL_NVIC_SetPriority(EXTI3_IRQn, 5, 0);
-	  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

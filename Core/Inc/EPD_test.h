@@ -9,14 +9,40 @@ enum class Button {
 	Error,
 };
 
+enum class ScreenOperations {
+
+};
+
+enum class DataOperations {
+	Create,
+	Delete
+};
+
+typedef struct {
+    float temperature;
+    uint8_t hour;
+    uint8_t minute;
+    bool AM;
+} SetPointData;
+
 enum class State {
-    Home,
-	Back,
+
+
+    HomeScreen,
+    MainMenuScreen,
+    LowBatteryScreen,
+	ScheduleScreen,
+	AlertScreen,
+	ClockDateScreen,
+
+	SetPointScreen,
+
+	Delete,
+
 	NextScreen,
 	PrevScreen,
 	MenuScreen,
 	PrevElement,
-
 	NextElement,
 	Interact,
 	Error,

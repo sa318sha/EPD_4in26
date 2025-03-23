@@ -1,0 +1,23 @@
+../Core/Src/FrameBuffer.cpp:41:6:void FrameBuffer::Paint_initImage(uint16_t, uint16_t, uint16_t, uint16_t)	32	static
+../Core/Src/FrameBuffer.cpp:25:1:FrameBuffer::FrameBuffer(uint16_t, uint16_t, uint16_t, uint16_t)	24	static
+../Core/Src/FrameBuffer.cpp:71:6:void FrameBuffer::Paint_NewImage(uint8_t*, uint16_t, uint16_t, uint16_t, uint16_t)	0	static
+../Core/Src/FrameBuffer.cpp:113:6:void FrameBuffer::Paint_SetRotate(uint16_t)	16	static
+../Core/Src/FrameBuffer.cpp:128:6:void FrameBuffer::Paint_SetScale(uint8_t)	8	static
+../Core/Src/FrameBuffer.cpp:149:6:void FrameBuffer::Paint_SetMirroring(uint8_t)	16	static
+../Core/Src/FrameBuffer.cpp:168:6:void FrameBuffer::Paint_SetPixel(uint16_t, uint16_t, uint16_t)	8	static
+../Core/Src/FrameBuffer.cpp:247:6:void FrameBuffer::Paint_Clear(uint16_t)	20	static
+../Core/Src/FrameBuffer.cpp:282:6:void FrameBuffer::Paint_ClearWindows(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t)	32	static
+../Core/Src/FrameBuffer.cpp:301:6:void FrameBuffer::Paint_DrawPoint(uint16_t, uint16_t, uint16_t, DOT_PIXEL, DOT_STYLE)	56	static
+../Core/Src/FrameBuffer.cpp:341:6:void FrameBuffer::Paint_DrawLine(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, DOT_PIXEL, LINE_STYLE)	80	static
+../Core/Src/FrameBuffer.cpp:399:6:void FrameBuffer::Paint_DrawRectangle(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, DOT_PIXEL, DRAW_FILL)	56	static
+../Core/Src/FrameBuffer.cpp:432:6:void FrameBuffer::Paint_DrawCircle(uint16_t, uint16_t, uint16_t, uint16_t, DOT_PIXEL, DRAW_FILL)	88	static
+../Core/Src/FrameBuffer.cpp:501:6:void FrameBuffer::Paint_DrawChar(uint16_t, uint16_t, char, sFONT*, uint16_t, uint16_t)	56	static
+../Core/Src/FrameBuffer.cpp:550:6:void FrameBuffer::Paint_DrawString_EN(uint16_t, uint16_t, const char*, sFONT*, uint16_t, uint16_t)	64	static
+../Core/Src/FrameBuffer.cpp:595:6:void FrameBuffer::Paint_DrawString_CN(uint16_t, uint16_t, const char*, cFONT*, uint16_t, uint16_t)	56	static
+../Core/Src/FrameBuffer.cpp:691:6:void FrameBuffer::Paint_DrawNum(uint16_t, uint16_t, int32_t, sFONT*, uint16_t, uint16_t)	576	static
+../Core/Src/FrameBuffer.cpp:734:6:void FrameBuffer::Paint_DrawNumDecimals(uint16_t, uint16_t, double, sFONT*, uint16_t, uint16_t, uint16_t)	584	static
+../Core/Src/FrameBuffer.cpp:793:6:void FrameBuffer::Paint_DrawTime(uint16_t, uint16_t, PAINT_TIME*, sFONT*, uint16_t, uint16_t)	96	static
+../Core/Src/FrameBuffer.cpp:830:6:void FrameBuffer::Paint_DrawBitMap(const unsigned char*)	20	static
+../Core/Src/FrameBuffer.cpp:855:6:void FrameBuffer::Paint_DrawBitMap_Paste(const unsigned char*, uint16_t, uint16_t, uint16_t, uint16_t, uint8_t)	64	static
+../Core/Src/FrameBuffer.cpp:873:6:void FrameBuffer::Paint_DrawBitMap_Block(const unsigned char*, uint8_t)	20	static
+../Core/Src/FrameBuffer.cpp:884:1:cpp)	0	static

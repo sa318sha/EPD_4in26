@@ -1,0 +1,11 @@
+../Core/Inc/FrameBuffer.h:144:25:static FrameBuffer& FrameBuffer::getInstance(uint16_t, uint16_t, uint16_t, uint16_t)	4
+../Core/Inc/Screen.h:78:10:void Screen::cleanRender()	3
+../Core/Src/ScreenManager.cpp:7:6:void ScreenManager::initFirstTime()	2
+../Core/Src/ScreenManager.cpp:25:6:void ScreenManager::updateActiveScreen()	3
+../Core/Src/ScreenManager.cpp:71:6:void ScreenManager::displayActiveScreen()	2
+../Core/Src/ScreenManager.cpp:17:6:void ScreenManager::addScreen(ScreenType, Screen*)	2
+../Core/Src/ScreenManager.cpp:58:6:void ScreenManager::setNewActiveScreen(ScreenType)	2
+../Core/Src/ScreenManager.cpp:80:6:void ScreenManager::onInteract()	4
+../Core/Src/ScreenManager.cpp:87:6:void ScreenManager::nextInteractable()	3
+../Core/Src/ScreenManager.cpp:93:6:void ScreenManager::prevInteractable()	4
+../Core/Src/ScreenManager.cpp:99:6:void ScreenManager::buttonPress(Button)	3

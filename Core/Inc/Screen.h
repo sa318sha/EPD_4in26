@@ -8,45 +8,69 @@
 #ifndef INC_SCREEN_H_
 #define INC_SCREEN_H_
 
-#include <vector>
+//#include <vector>
 #include "Drawable.h"
 #include "FrameBuffer.h"
 #include "EPD_4in26.h"
 #include "Container.h"
-
-//UBYTE defaultImage[];
+#include <memory>
 #include "EPD_test.h"
+
+#define MAX_SCREEN_DRAWABLES 10 // Define a reasonable limit for the array
+
 
 class Screen {
 public:
 	using Callback = void (*)(Button button);
-//	friend class EPD_4in26;
 
     Screen(Callback cb = nullptr, UWORD Width_ = EPD_4in26_WIDTH, UWORD Height_  = EPD_4in26_HEIGHT, UWORD colour = WHITE, UWORD Rotate= ROTATE_0):
-//    	defaultfb( Width_, Height_, Rotate, colour),
-    	buttonCb(cb),
+    	currentSelection(-1),
+		elementCount(0),
+//		selectableCount(0),
+		buttonCb(cb),
 		Colour(colour)
     {
-    	clear(Colour);
-//        imageBuffer = image_;
+
     }
 
     ~Screen() {
-//    	delete[] imageBuffer;
     }
+
+    void removeDrawable(Drawable* obj) {
+        for (int i = 0; i < elementCount; ++i) {
+            if (elements[i] == obj) {
+                // Found the object; shift all remaining elements left
+                for (int j = i; j < elementCount - 1; ++j) {
+                    elements[j] = elements[j + 1];
+                }
+
+                elements[elementCount - 1] = nullptr;  // Clear last slot
+                elementCount--;
+
+                // Adjust selection if needed
+                if (currentSelection == i) {
+                    currentSelection = -1;
+                } else if (currentSelection > i) {
+                    currentSelection--;
+                }
+
+                break;
+            }
+        }
+    }
+
+
 
     void addDrawable(Drawable* obj) {
-    	elements.push_back(obj);
+    	if (elementCount < MAX_SCREEN_DRAWABLES) {
 
-    	if(obj->interactable()){
-    		if(selectableElements.size() == 0){
-    			currentSelection = 0;
-    		}
-    		selectableElements.push_back(obj);
-    	}
+			if(obj->interactable() && currentSelection == -1){
+				currentSelection = elementCount;
+			}
+
+			elements[elementCount++] = obj;
+		}
     }
-
-//    void addSelectable(Drawable * obj)
 
     inline UBYTE* getImage() {
     	FrameBuffer& fb = FrameBuffer::getInstance();
@@ -54,20 +78,29 @@ public:
     	return fb.getImage();
     }
 
-    //TODO complete rerender of the screen -> including clear (may always be needed since there is only one framebuffer) - expensive -> placce for optimization
-    void render() {
-    	clear(Colour);
+    void optimizedRender() {
 
-    	//safety highlight
-    	if(currentSelection > -1){
-    		selectableElements[currentSelection]->highlight(true);
-
-    	}
 
     	FrameBuffer& fb = FrameBuffer::getInstance();
 
-        for (auto obj : elements) {
-            obj->draw(fb);
+        for (int i = 0; i < elementCount; i++) {
+            elements[i]->draw(fb);
+        }
+    }
+    void cleanRender() {
+    	clear(Colour);
+
+    	//safety highlight
+        if (currentSelection > -1) {
+        	elements[currentSelection]->highlight(true);
+        }
+
+    	FrameBuffer& fb = FrameBuffer::getInstance();
+
+//        }
+        for (int i = 0; i < elementCount; i++) {
+        	elements[i]->resetUpdated();
+            elements[i]->draw(fb);
         }
     }
 
@@ -79,34 +112,48 @@ public:
 
     void selectNext() {
     	if (currentSelection > -1){
-    		selectableElements[currentSelection]->highlight(false);
-			currentSelection = (currentSelection + 1) % selectableElements.size();
-			selectableElements[currentSelection]->highlight(true);
+    		elements[currentSelection]->highlight(false);
+            int previousSelection = currentSelection;
+            do{
+                currentSelection = (currentSelection + 1) % elementCount;
+                if(elements[currentSelection]->interactable()){
+                	break;
+                }
+            }while(currentSelection !=  previousSelection);
+            elements[currentSelection]->highlight(true);
     	}
     }
 
     void selectPrev() {
     	if (currentSelection > -1)
 		{
-			selectableElements[currentSelection]->highlight(false);
+    		elements[currentSelection]->highlight(false);
 
-			currentSelection = (currentSelection == 0) ? selectableElements.size() - 1 : currentSelection - 1;
+            int previousSelection = currentSelection;
+            do{
+                currentSelection = (currentSelection == 0) ? elementCount - 1 : currentSelection - 1;
+                if(elements[currentSelection]->interactable()){
+                	break;
+                }
+            }while(currentSelection !=  previousSelection);
 
-			selectableElements[currentSelection]->highlight(true);
+//            currentSelection = (currentSelection == 0) ? elementCount - 1 : currentSelection - 1;
+            elements[currentSelection]->highlight(true);
 		}
     }
 
     void interact() {
     	if (currentSelection > -1)
 		{
-    		selectableElements[currentSelection]->triggerAction();
+    		elements[currentSelection]->triggerAction();
 		}
+
     }
 
 
-    void buttonPress(){
+    void buttonPress(Button bt){
     	if(buttonCb){
-    		buttonCb();
+    		buttonCb(bt);
     	}
     }
 
@@ -116,23 +163,31 @@ public:
 
 
 
-private:
-//    UBYTE img[Imagesize];
-//    static FrameBuffer defaultfb;
-    UWORD Colour;
-    // ideally would be hash maps but ask me if i care
-    // (I do not care)
-    std::vector<Drawable*> elements;
+protected:
+
 
 //    subset of elements
     signed int currentSelection = -1;
-    std::vector<Drawable*> selectableElements;
+
+    Drawable* elements[MAX_SCREEN_DRAWABLES];
+    int elementCount;
+
+//    Drawable* selectableElements[MAX_SCREEN_DRAWABLES];
+//    int selectableCount;
 
     Callback buttonCb;
+    UWORD Colour;
 
 //    std::vector<Container *> container;
 
 };
+
+//
+//class SetPointScreen: public Screen {
+//
+//private:
+//	std::unique_ptr<Drawable, FreeRTOSDeleter> dynamicDrawables;
+//};
 
 
 
