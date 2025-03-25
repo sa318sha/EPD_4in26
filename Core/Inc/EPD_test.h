@@ -18,12 +18,19 @@ enum class DataOperations {
 	Delete
 };
 
+
+
 typedef struct {
     float temperature;
     uint8_t hour;
     uint8_t minute;
     bool AM;
 } SetPointData;
+
+typedef struct {
+	SetPointData setpoints[MAX_SETPOINTS_PER_DAY];
+    uint8_t setpointCount;
+} DaySchedule;
 
 enum class State {
 
@@ -38,6 +45,10 @@ enum class State {
 	SetPointScreen,
 
 	Delete,
+
+	UpdateSetPointIncrease,
+	UpdateSetPointDecrease,
+
 
 	NextScreen,
 	PrevScreen,

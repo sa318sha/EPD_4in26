@@ -1,7 +1,0 @@
-../Core/Src/main.cpp:431:6:void EPaperEntry(void*)	1
-../Core/Src/main.cpp:88:6:void HAL_GPIO_EXTI_Callback(uint16_t)	9
-../Core/Src/main.cpp:256:6:void SystemClock_Config()	3
-../Core/Src/main.cpp:302:6:void PeriphCommonClock_Config()	2
-../Core/Src/main.cpp:143:5:int main()	5
-../Core/Src/main.cpp:451:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	2
-../Core/Src/main.cpp:468:6:void Error_Handler()	1

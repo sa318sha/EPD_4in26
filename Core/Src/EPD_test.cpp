@@ -31,7 +31,7 @@ extern QueueHandle_t dataSetPointOperationQueue;
 
 
 #define DAYS_IN_WEEK 7
-#define MAX_SETPOINTS_PER_DAY 3
+#define MAX_SETPOINTS_PER_DAY 4
 //#define MAX
 
 
@@ -43,18 +43,15 @@ UWORD setPointContainerHeight = 78;
 
 typedef struct {
 	char setPointBuffer[50];
-	Container container = Container(0,0,0,0);
+	Container container = Container(0,0,0,0, [](){});
 	HighLightOnInteractRectangle rectangle = HighLightOnInteractRectangle(0, 0, setPointContainerWidth, setPointContainerHeight, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
 	HighlightableDrawText text = HighlightableDrawText(20,20,setPointBuffer,&Font24, WHITE, BLACK);
 } SetPointContainer;
 
 
-typedef struct {
-	SetPointData setpoints[MAX_SETPOINTS_PER_DAY];
-    uint8_t setpointCount;
-} DaySchedule;
 
-static DaySchedule schedule[DAYS_IN_WEEK] = {
+
+DaySchedule schedule[DAYS_IN_WEEK] = {
     {{ {22.0, 6, 30}, {24.0, 18, 0} }, 2},  // Monday
     {{ {21.5, 7, 0} }, 1},  // Tuesday
     {{ {22.5, 6, 45}, {24.5, 17, 30} }, 2},  // Wednesday
@@ -64,23 +61,38 @@ static DaySchedule schedule[DAYS_IN_WEEK] = {
     {{ {20.5, 9, 0}, {22.5, 22, 0} }, 2}   // Sunday
 };
 
+
+SetPointData currSelectedSetPoint;
+
+//char hoursBuffer[50];
+//Container setPointHoursContainer = Container(340,60,120,130);
+//HighLightOnInteractRectangle setPointHoursRectangle = HighLightOnInteractRectangle(0, 0, 120, 131, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
+//HighlightableDrawText setPointHoursText = HighlightableDrawText(20,20,hoursBuffer,&Font24, WHITE, BLACK);
+//
+//char minutesBuffer[50];
+//Container setPointMinutesContainer = Container(502,60,120,130);
+//HighLightOnInteractRectangle setPointMinutesRectangle = HighLightOnInteractRectangle(0, 0, 120, 131, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
+//HighlightableDrawText setPointMinutesText = HighlightableDrawText(20,20,minutesBuffer,&Font24, WHITE, BLACK);
+//
+//char tempBuffer[50];
+//Container setPointTempContainer = Container(502,240,120,131);
+//HighLightOnInteractRectangle setPointTempRectangle = HighLightOnInteractRectangle(0, 0, 120, 131, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
+//HighlightableDrawText setPointTempText = HighlightableDrawText(20,20,tempBuffer,&Font24, WHITE, BLACK);
+
+DrawText SetPointC = DrawText(622,247,"C",&Font24, WHITE, BLACK);
+
 static SetPointContainer setPointOptions[MAX_SETPOINTS_PER_DAY];
-static UBYTE currentDay = 99;
+UBYTE currentDay = 99;
 static UBYTE currentSetPointSelection = 0;
 
-//typedef struct SetPointData{
-//    float temperature;
-//    uint8_t hour;
-//    uint8_t minute;
-//    bool AM;
-//} NewSetPointData;
+
 
 
 PAINT_TIME time = {9999, 12,30,23,59,59,false,false};
 
 
 float setPoint = 23.5;
-char buffer[50]; // Buffer for formatted string
+char setPointBuffer[50]; // Buffer for formatted string
 
 float temparature = 24.5;
 char temparatureBuffer[50]; // Buffer for formatted string
@@ -99,7 +111,10 @@ BitMap battery = BitMap(gImage_battery, 0, 0, 64, 64, WHITE);
 
 BitMap wifi = BitMap(gImage_wifi,730,0, 64,64,WHITE);
 
-Screen setPointScreen = Screen();
+DrawText setPointText = DrawText(358,121,setPointBuffer,&Font16, WHITE, BLACK);
+DrawText actualTemperature = DrawText(302,174,temparatureBuffer,&Font24, WHITE, BLACK);
+
+SetPointScreen setPointScreen = SetPointScreen();
 
 
 EPD_4in26 ePaperGlobal(RST_GPIO_Port, RST_Pin,
@@ -111,9 +126,7 @@ EPD_4in26 ePaperGlobal(RST_GPIO_Port, RST_Pin,
 									);
 
 
-void updateSetPointMainArea(Screen scr){
 
-}
 
 void updateSetPointDynamicElements(UBYTE index){
 	currentDay = index;
@@ -127,7 +140,7 @@ void updateSetPointDynamicElements(UBYTE index){
 	        snprintf(container.setPointBuffer, sizeof(container.setPointBuffer), "%02d:%02d - %.1fC", data.hour, data.minute, data.temperature);
 	        container.text.updatedText();
 	        container.container.addCallback([](){
-
+	        	setPointScreen.editCurrentSetPoint();
 //	    		xQueueSend(dataSetPointOperationQueue, &data, portMAX_DELAY);
 
 	        });
@@ -137,15 +150,27 @@ void updateSetPointDynamicElements(UBYTE index){
 	        snprintf(container.setPointBuffer, sizeof(container.setPointBuffer), "Add + SetPoint");
 	        container.text.updatedText();
 	        container.container.addCallback([](){
-
+	        	setPointScreen.addSetpoint();
 	        });
 		} else {
-	        snprintf(container.setPointBuffer, sizeof(container.setPointBuffer), "\0");
+	        snprintf(container.setPointBuffer, sizeof(container.setPointBuffer),"");
 	        container.text.updatedText();
+	        container.container.setInteractability(false);
 		}
 
 
 	}
+
+//    snprintf(hoursBuffer, sizeof(hoursBuffer),"11");
+//    snprintf(minutesBuffer, sizeof(minutesBuffer),"10");
+//    snprintf(tempBuffer, sizeof(tempBuffer),"22");
+
+
+//	setPointMinutesText
+
+
+
+
 }
 
 
@@ -175,98 +200,24 @@ void setPointInitializeConnections(Screen & setPointScreen){
 		setPointScreen.addDrawable(&setPointContaienr.container);
 	}
 
-//	setPointScreen
-
-}
-
-
-
-void drawAlertScreen(Screen& alertScreen) {
-	UWORD containerWidth = 138;
-	UWORD containerHeight = 65;
-
-	UWORD scheduleContainerHeightIndent = 15;
-	UWORD scheduleContainerWidth = 307;
-	UWORD scheduleContainerHeight = 56;
-
-	Container BackContainer = Container(169,415,containerWidth,containerHeight);
-	Rectangle backRectangle =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-	DrawText backText =  DrawText(20,20,"Back",&Font16, WHITE, BLACK);
-
-	BackContainer.addDrawable(&backRectangle);
-	BackContainer.addDrawable(&backText);
+//	setPointHoursContainer.addDrawable(&setPointHoursRectangle);
+//	setPointHoursContainer.addDrawable(&setPointHoursText);
 //
-	Container homeContainer = Container(331,415,containerWidth,containerHeight);
-//		Rectangle* homeRectangle = new Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-	DrawText homeText = DrawText(20,20,"Home",&Font16, WHITE, BLACK);
-
-	homeContainer.addDrawable(&backRectangle);
-	homeContainer.addDrawable(&homeText);
-
-	Container dismissContainer = Container(493,415,containerWidth,containerHeight);
-//		Rectangle* selectRectangle = new Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-	DrawText selectText = DrawText(20,20,"Select",&Font16, WHITE, BLACK);
-
-	dismissContainer.addDrawable(&backRectangle);
-	dismissContainer.addDrawable(&selectText);
-
-	UWORD mainMenuWidth = 747;
-	UWORD mainMenuHeight = 93;
-
-
-	Container Alert1 = Container(0, scheduleContainerHeightIndent, scheduleContainerWidth, scheduleContainerHeight, [](){
-
-	} );
-	HighLightOnInteractRectangle Alert1Rectangle = HighLightOnInteractRectangle(0, 0, scheduleContainerWidth, scheduleContainerHeight, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
-	HighlightableDrawText Alert1Text = HighlightableDrawText(20,20,"Heating Warning",&Font24, WHITE, BLACK);
-
-	Alert1.addDrawable(&Alert1Rectangle);
-	Alert1.addDrawable(&Alert1Text);
-
-	Container Alert2Container = Container(0, scheduleContainerHeightIndent + scheduleContainerHeight * 1, scheduleContainerWidth, scheduleContainerHeight, [](){
-
-	}  );
-	HighLightOnInteractRectangle Alert2Rectangle = HighLightOnInteractRectangle(0, 0, scheduleContainerWidth, scheduleContainerHeight, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
-	HighlightableDrawText Alert2Text = HighlightableDrawText(20,20,"Leaking Pipes",&Font24, WHITE, BLACK);
-
-	Alert2Container.addDrawable(&Alert2Rectangle);
-	Alert2Container.addDrawable(&Alert2Text);
-
-
-
-
-
-	alertScreen.addDrawable(&BackContainer);
-	alertScreen.addDrawable(&homeContainer);
-	alertScreen.addDrawable(&dismissContainer);
-
-	alertScreen.addDrawable(&Alert1);
-	alertScreen.addDrawable(&Alert2Container);
+//	setPointMinutesContainer.addDrawable(&setPointMinutesRectangle);
+//	setPointMinutesContainer.addDrawable(&setPointMinutesText);
+//
+//	setPointTempContainer.addDrawable(&setPointTempRectangle);
+//	setPointTempContainer.addDrawable(&setPointTempText);
+//
+//	setPointScreen.addDrawable(&setPointHoursContainer);
+//	setPointScreen.addDrawable(&setPointMinutesContainer);
+//	setPointScreen.addDrawable(&setPointTempContainer);
+//	setPointScreen.addDrawable(&SetPointC);
 
 
 
 }
-void drawClockDateScreen(Screen& clockDateScreen){
-	UWORD clockContainerWidth = 138;
-	UWORD ClockContainerHeight = 65;
 
-
-	Container clockLeftContainer = Container(169,415,clockContainerWidth,ClockContainerHeight);
-	Rectangle clockButtonRectangle =  Rectangle(0, 0, clockContainerWidth, ClockContainerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-	DrawText clockLeftText =  DrawText(20,20,"Back",&Font16, WHITE, BLACK);
-
-	Container clockMiddleContainer = Container(331,415,clockContainerWidth,ClockContainerHeight);
-	DrawText clockMiddleText= DrawText(20,20,"Home",&Font16, WHITE, BLACK);
-
-	Container clockRightContainer = Container(493,415,clockContainerWidth,ClockContainerHeight);
-	DrawText clockRightContainerText = DrawText(20,20,"Select",&Font16, WHITE, BLACK);
-
-
-	clockDateScreen.addDrawable(&clockLeftContainer);
-	clockDateScreen.addDrawable(&clockRightContainer);
-	clockDateScreen.addDrawable(&clockMiddleContainer);
-
-}
 
 
 void setPointScreenCallback1(Button bt){
@@ -325,6 +276,23 @@ void setPointScreenCallback2(Button bt){
 		break;
 	}
 }
+
+
+void increaseSetPointOpeningScreen(){
+	setPoint += 0.5;
+
+	snprintf(setPointBuffer, sizeof(setPointBuffer), "Setpoint: %.1fC", setPoint);
+	setPointText.updatedText();
+}
+
+void decreaseSetPointOpeningScreen(){
+	setPoint -= 0.5;
+
+	snprintf(setPointBuffer, sizeof(setPointBuffer), "Setpoint: %.1fC", setPoint);
+	setPointText.updatedText();
+}
+
+
 void EPD_MainMenuWithQueue(){
 
 
@@ -348,11 +316,10 @@ void EPD_MainMenuWithQueue(){
 
 	BitMap bitmap = BitMap(gImage_icon, 27, 2, 96, 96, WHITE);
 
-	snprintf(buffer, sizeof(buffer), "Setpoint: %.1fC", setPoint);
+	snprintf(setPointBuffer, sizeof(setPointBuffer), "Setpoint: %.1fC", setPoint);
 	snprintf(temparatureBuffer, sizeof(temparatureBuffer), "Temperature: %.1fC", temparature);
 
-	DrawText setPointText = DrawText(358,121,buffer,&Font16, WHITE, BLACK);
-	DrawText actualTemperature = DrawText(302,174,temparatureBuffer,&Font24, WHITE, BLACK);
+
 
 
 	container1.addDrawable(&rect1);
@@ -379,21 +346,21 @@ void EPD_MainMenuWithQueue(){
 
 	Container BackContainer = Container(169,415,containerWidth,containerHeight);
 	Rectangle backRectangle =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-	DrawText backText =  DrawText(20,20,"Back",&Font16, WHITE, BLACK);
+	DrawText backText =  DrawText(20,20,"Back",&Font20, WHITE, BLACK);
 
 	BackContainer.addDrawable(&backRectangle);
 	BackContainer.addDrawable(&backText);
 //
 	Container homeContainer = Container(331,415,containerWidth,containerHeight);
 //		Rectangle* homeRectangle = new Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-	DrawText homeText = DrawText(20,20,"Home",&Font16, WHITE, BLACK);
+	DrawText homeText = DrawText(20,20,"Home",&Font20, WHITE, BLACK);
 
 	homeContainer.addDrawable(&backRectangle);
 	homeContainer.addDrawable(&homeText);
 
 	Container selectContainer = Container(493,415,containerWidth,containerHeight);
 //		Rectangle* selectRectangle = new Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-	DrawText selectText = DrawText(20,20,"Select",&Font16, WHITE, BLACK);
+	DrawText selectText = DrawText(20,20,"Select",&Font20, WHITE, BLACK);
 
 	selectContainer.addDrawable(&backRectangle);
 	selectContainer.addDrawable(&selectText);
@@ -692,6 +659,15 @@ void EPD_MainMenuWithQueue(){
 		}
 		if (xQueueReceive(stateQueue, &state, 10) == pdPASS) {
 			switch(state){
+			case State::UpdateSetPointIncrease:
+				LOG_INFO("Increasing Setpoint OpeningScreen");
+				increaseSetPointOpeningScreen();
+				screenManager.updateActiveScreen();
+
+			case State::UpdateSetPointDecrease:
+				LOG_INFO("Decreasing Setpoint OpeningScreen");
+				decreaseSetPointOpeningScreen();
+				screenManager.updateActiveScreen();
 			case State::HomeScreen:
 				LOG_INFO("Opening Screen");
 				screenManager.setNewActiveScreen(ScreenType::HomeScreen);
@@ -708,6 +684,7 @@ void EPD_MainMenuWithQueue(){
 				LOG_INFO("Main Menu Screen");
 				screenManager.setNewActiveScreen(ScreenType::SetPointScreen);
 				setPointScreen.setButtonCallback(setPointScreenCallback1);
+				currentSetPointSelection = 0;
 				break;
 			case State::PrevElement:
 				LOG_INFO("Prev Element");
