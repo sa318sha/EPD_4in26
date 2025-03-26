@@ -777,7 +777,7 @@ void FrameBuffer::Paint_DrawNumDecimals(UWORD Xpoint, UWORD Ypoint, double Nummb
     }
 
     //show
-    Paint_DrawString_EN(Xpoint, Ypoint, (const char*)pStr, Font, Color_Background, Color_Foreground);
+    Paint_DrawString_EN(Xpoint, Ypoint, (const char*)pStr, Font, Color_Foreground, Color_Background);
 }
 
 /******************************************************************************

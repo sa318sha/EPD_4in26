@@ -1,5 +1,7 @@
 #pragma once
 
+
+
 enum class Button {
     Up,
 	Down,
@@ -34,6 +36,8 @@ typedef struct {
 
 enum class State {
 
+	RefreshActiveScreen,
+	FullRefreshActiveScreen,
 
     HomeScreen,
     MainMenuScreen,
@@ -43,11 +47,14 @@ enum class State {
 	ClockDateScreen,
 
 	SetPointScreen,
-
+	Save,
+	Cancel,
+	IncreaseSetPoint,
+	DecreaseSetPoint,
 	Delete,
 
-	UpdateSetPointIncrease,
-	UpdateSetPointDecrease,
+//	UpdateSetPointIncrease,
+//	UpdateSetPointDecrease,
 
 
 	NextScreen,
@@ -59,6 +66,9 @@ enum class State {
 	Error,
 };
 
+void setPointScreenCallback2(Button bt);
+void setPointScreenCallback1(Button bt);
+void updateSetPointDynamicElements(UBYTE index);
 void EPD_basic_controller_test();
 void EPD_frame_buffer_draw_test();
 void EPD_screen_multiple_objects();

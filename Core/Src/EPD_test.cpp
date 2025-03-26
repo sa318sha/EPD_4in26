@@ -21,6 +21,9 @@
 #define Imagesize (((EPD_4in26_WIDTH % 8 == 0)? (EPD_4in26_WIDTH / 8 ): (EPD_4in26_WIDTH / 8 + 1)) * EPD_4in26_HEIGHT)
 //static UBYTE BlackImage[Imagesize];
 
+
+
+
 //static UBYTE screen1img[Imagesize];
 //static UBYTE frameBufferScreen[Imagesize];
 
@@ -64,32 +67,20 @@ DaySchedule schedule[DAYS_IN_WEEK] = {
 
 SetPointData currSelectedSetPoint;
 
-//char hoursBuffer[50];
-//Container setPointHoursContainer = Container(340,60,120,130);
-//HighLightOnInteractRectangle setPointHoursRectangle = HighLightOnInteractRectangle(0, 0, 120, 131, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
-//HighlightableDrawText setPointHoursText = HighlightableDrawText(20,20,hoursBuffer,&Font24, WHITE, BLACK);
-//
-//char minutesBuffer[50];
-//Container setPointMinutesContainer = Container(502,60,120,130);
-//HighLightOnInteractRectangle setPointMinutesRectangle = HighLightOnInteractRectangle(0, 0, 120, 131, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
-//HighlightableDrawText setPointMinutesText = HighlightableDrawText(20,20,minutesBuffer,&Font24, WHITE, BLACK);
-//
-//char tempBuffer[50];
-//Container setPointTempContainer = Container(502,240,120,131);
-//HighLightOnInteractRectangle setPointTempRectangle = HighLightOnInteractRectangle(0, 0, 120, 131, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
-//HighlightableDrawText setPointTempText = HighlightableDrawText(20,20,tempBuffer,&Font24, WHITE, BLACK);
 
 DrawText SetPointC = DrawText(622,247,"C",&Font24, WHITE, BLACK);
 
 static SetPointContainer setPointOptions[MAX_SETPOINTS_PER_DAY];
 UBYTE currentDay = 99;
-static UBYTE currentSetPointSelection = 0;
+UBYTE currentSetPointSelection = 0;
 
 
 
 
 PAINT_TIME time = {9999, 12,30,23,59,59,false,false};
 
+UWORD containerWidth = 138;
+UWORD containerHeight = 65;
 
 float setPoint = 23.5;
 char setPointBuffer[50]; // Buffer for formatted string
@@ -111,10 +102,33 @@ BitMap battery = BitMap(gImage_battery, 0, 0, 64, 64, WHITE);
 
 BitMap wifi = BitMap(gImage_wifi,730,0, 64,64,WHITE);
 
-DrawText setPointText = DrawText(358,121,setPointBuffer,&Font16, WHITE, BLACK);
+
+Container setPointContainer = Container(358,121,150,150);
+Rectangle setPointRectangle = Rectangle(0,0,250,31,WHITE,DOT_PIXEL_1X1, DRAW_FILL_FULL);
+DrawText setPointText = DrawText(0,0,setPointBuffer,&Font20, WHITE, BLACK);
 DrawText actualTemperature = DrawText(302,174,temparatureBuffer,&Font24, WHITE, BLACK);
 
 SetPointScreen setPointScreen = SetPointScreen();
+
+
+Container backContainerSetPoint = Container(169,415,containerWidth,containerHeight);
+Rectangle backRectangleSetPoint =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
+DrawText backTextSetPoint = DrawText(20,20,"Back",&Font16, WHITE, BLACK);
+
+
+Container deleteContainerSetPoint = Container(331,415,containerWidth,containerHeight);
+Rectangle deleteRectangleSetPoint =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
+DrawText deleteTextSetPoint = DrawText(20,20,"Delete",&Font16, WHITE, BLACK);
+
+
+Container editContainerSetPoint = Container(493,415,containerWidth,containerHeight);
+Rectangle editRectangleSetPoint =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
+DrawText editTextSetPoint = DrawText(20,20,"Edit",&Font16, WHITE, BLACK);
+
+
+
+
+Screen openingScreen = Screen();
 
 
 EPD_4in26 ePaperGlobal(RST_GPIO_Port, RST_Pin,
@@ -124,8 +138,6 @@ EPD_4in26 ePaperGlobal(RST_GPIO_Port, RST_Pin,
 						    		PWR_GPIO_Port, PWR_Pin,
 									&hspi1
 									);
-
-
 
 
 void updateSetPointDynamicElements(UBYTE index){
@@ -138,9 +150,14 @@ void updateSetPointDynamicElements(UBYTE index){
 
 		if(i < day.setpointCount){
 	        snprintf(container.setPointBuffer, sizeof(container.setPointBuffer), "%02d:%02d - %.1fC", data.hour, data.minute, data.temperature);
+//	        container.container.resetUpdated();
 	        container.text.updatedText();
 	        container.container.addCallback([](){
+//	        	setPointScreen.setSetPoint(true);
+//	        	setPointScreen.
 	        	setPointScreen.editCurrentSetPoint();
+	        	State state = State::RefreshActiveScreen;
+	        	xQueueSend(stateQueue, &state, portMAX_DELAY);
 //	    		xQueueSend(dataSetPointOperationQueue, &data, portMAX_DELAY);
 
 	        });
@@ -148,31 +165,57 @@ void updateSetPointDynamicElements(UBYTE index){
 
 		else if(i == day.setpointCount ){
 	        snprintf(container.setPointBuffer, sizeof(container.setPointBuffer), "Add + SetPoint");
+//	        container.container.resetUpdated();
+
 	        container.text.updatedText();
 	        container.container.addCallback([](){
-	        	setPointScreen.addSetpoint();
+
+//	        	setPointScreen.addSetpoint();
+
+	        	setPointScreen.editCurrentSetPoint();
+	        	State state = State::RefreshActiveScreen;
+	        	xQueueSend(stateQueue, &state, portMAX_DELAY);
+//	        	setPointScreen.setSetPoint(true);
 	        });
 		} else {
 	        snprintf(container.setPointBuffer, sizeof(container.setPointBuffer),"");
-	        container.text.updatedText();
+	        container.container.resetUpdated();
+
+//	        container.text.updatedText();
 	        container.container.setInteractability(false);
 		}
 
 
 	}
 
-//    snprintf(hoursBuffer, sizeof(hoursBuffer),"11");
-//    snprintf(minutesBuffer, sizeof(minutesBuffer),"10");
-//    snprintf(tempBuffer, sizeof(tempBuffer),"22");
-
-
-//	setPointMinutesText
-
-
-
 
 }
 
+
+void deleteSetpointData() {
+    if (currentDay < 0 || currentDay >= DAYS_IN_WEEK) return;
+
+    DaySchedule& day = schedule[currentDay];
+
+    if (currentSetPointSelection < 0 || currentSetPointSelection >= day.setpointCount) return;
+
+    // Shift remaining setpoints
+    for (int i = currentSetPointSelection; i < day.setpointCount - 1; ++i) {
+        day.setpoints[i] = day.setpoints[i + 1];
+    }
+
+    // Clear the last one (optional)
+    day.setpoints[day.setpointCount - 1] = {0.0, 0, 0};
+
+    // Decrement the count
+    day.setpointCount--;
+
+//    updateSetPointDynamicElements(currentDay);
+//    updateSetPointDynamicElements(currentDay);
+
+
+//	xQueueSend(stateQueue, &state, portMAX_DELAY);
+}
 
 
 
@@ -200,36 +243,55 @@ void setPointInitializeConnections(Screen & setPointScreen){
 		setPointScreen.addDrawable(&setPointContaienr.container);
 	}
 
-//	setPointHoursContainer.addDrawable(&setPointHoursRectangle);
-//	setPointHoursContainer.addDrawable(&setPointHoursText);
-//
-//	setPointMinutesContainer.addDrawable(&setPointMinutesRectangle);
-//	setPointMinutesContainer.addDrawable(&setPointMinutesText);
-//
-//	setPointTempContainer.addDrawable(&setPointTempRectangle);
-//	setPointTempContainer.addDrawable(&setPointTempText);
-//
-//	setPointScreen.addDrawable(&setPointHoursContainer);
-//	setPointScreen.addDrawable(&setPointMinutesContainer);
-//	setPointScreen.addDrawable(&setPointTempContainer);
-//	setPointScreen.addDrawable(&SetPointC);
-
 
 
 }
 
+void deleteSetpointElmenents() {
+    DaySchedule& day = schedule[currentDay];
+	for(int i = currentSetPointSelection+1; i < MAX_SETPOINTS_PER_DAY; i++){
+		SetPointContainer& container = setPointOptions[i];
+		 container.container.resetClear();
+	}
+}
 
+void saveSetpointElmenents() {
+    DaySchedule& day = schedule[currentDay];
+	for(int i = currentSetPointSelection; i < MAX_SETPOINTS_PER_DAY; i++){
+		SetPointContainer& container = setPointOptions[i];
+		 container.container.resetClear();
+	}
+}
 
 void setPointScreenCallback1(Button bt){
 	State currState = State::Error;
 	switch (bt){
 	case Button::Middle:
-		currState = State::Delete;
+//		currState = State::Delete;
+		deleteSetpointElmenents();
+		deleteSetpointData();
+//		screenMa
+		updateSetPointDynamicElements(currentDay);
+		setPointScreen.refreshBoxes();
+//		setPointScreen.setPointUpdate();
+		currState = State::RefreshActiveScreen;
 	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+//	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
 		break;
 	case Button::Right:
-		currState = State::Interact;
-	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+//		currState = State::Interact;
+//	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+	    deleteTextSetPoint.setString("Save");
+	    editTextSetPoint.setString("Next");
+	    backTextSetPoint.setString("Cancel");
+	    deleteContainerSetPoint.resetClear();
+	    editContainerSetPoint.resetClear();
+	    backContainerSetPoint.resetClear();
+
+		setPointScreen.interact();
+	    setPointScreen.setButtonCallback(setPointScreenCallback2);
+
+
 		break;
 	case Button::Left:
 		currState = State::PrevScreen;
@@ -253,36 +315,77 @@ void setPointScreenCallback2(Button bt){
 	State currState = State::Error;
 	switch (bt){
 	case Button::Middle:
-		currState = State::Delete;
-	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+		setPointScreen.save();
+		saveSetpointElmenents();
+		updateSetPointDynamicElements(currentDay);
+		setPointScreen.remove();
+		setPointScreen.refreshBoxes();
+
+	    deleteTextSetPoint.setString("Delete");
+	    editTextSetPoint.setString("Edit");
+	    backTextSetPoint.setString("Back");
+	    deleteContainerSetPoint.resetClear();
+	    editContainerSetPoint.resetClear();
+	    backContainerSetPoint.resetClear();
+
+	    setPointScreen.setButtonCallback(setPointScreenCallback1);
+
+		currState = State::RefreshActiveScreen;
+		xQueueSend(stateQueue, &currState, portMAX_DELAY);
+
 		break;
 	case Button::Right:
-		currState = State::Interact;
+		setPointScreen.refreshBoxes();
+		currState = State::NextElement;
 	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
 		break;
 	case Button::Left:
-		currState = State::PrevScreen;
-	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+//		currState = State::Cancel;
+	    deleteTextSetPoint.setString("Delete");
+	    editTextSetPoint.setString("Edit");
+	    backTextSetPoint.setString("Back");
+	    deleteContainerSetPoint.resetClear();
+	    editContainerSetPoint.resetClear();
+	    backContainerSetPoint.resetClear();
+
+		setPointScreen.cancel();
+	    setPointScreen.setButtonCallback(setPointScreenCallback1);
+
+		currState = State::RefreshActiveScreen;
+		xQueueSend(stateQueue, &currState, portMAX_DELAY);
+//	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
 	    break;
 	case Button::Up:
-		currState = State::PrevElement;
-	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+		currState = State::RefreshActiveScreen;
+
+		setPointScreen.increaseValue();
+		xQueueSend(stateQueue, &currState, portMAX_DELAY);
+
 	    break;
 	case Button::Down:
-		currState = State::NextElement;
-	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+		currState = State::RefreshActiveScreen;
+
+		setPointScreen.decreaseValue();
+		xQueueSend(stateQueue, &currState, portMAX_DELAY);
+
 	    break;
 	default:
 		break;
 	}
 }
 
+void deleteCurrentSetPoint(){
+
+}
 
 void increaseSetPointOpeningScreen(){
 	setPoint += 0.5;
 
 	snprintf(setPointBuffer, sizeof(setPointBuffer), "Setpoint: %.1fC", setPoint);
 	setPointText.updatedText();
+
+	State state = State::RefreshActiveScreen;
+	xQueueSend(stateQueue, &state, portMAX_DELAY);
 }
 
 void decreaseSetPointOpeningScreen(){
@@ -290,6 +393,9 @@ void decreaseSetPointOpeningScreen(){
 
 	snprintf(setPointBuffer, sizeof(setPointBuffer), "Setpoint: %.1fC", setPoint);
 	setPointText.updatedText();
+	State state = State::RefreshActiveScreen;
+	xQueueSend(stateQueue, &state, portMAX_DELAY);
+
 }
 
 
@@ -304,7 +410,6 @@ void EPD_MainMenuWithQueue(){
 
 	Screen alertScreen = Screen();
 
-	Screen openingScreen = Screen();
 
 
 	Container container1 = Container(ContainerxStart,containerYStart,138,65, []() {
@@ -320,12 +425,14 @@ void EPD_MainMenuWithQueue(){
 	snprintf(temparatureBuffer, sizeof(temparatureBuffer), "Temperature: %.1fC", temparature);
 
 
+	setPointContainer.addDrawable(&setPointRectangle);
+	setPointContainer.addDrawable(&setPointText);
 
 
 	container1.addDrawable(&rect1);
 	container1.addDrawable(&bitmap);
 	openingScreen.addDrawable(&container1);
-	openingScreen.addDrawable(&setPointText);
+	openingScreen.addDrawable(&setPointContainer);
 	openingScreen.addDrawable(&actualTemperature);
 	openingScreen.addDrawable(&timeText);
 	openingScreen.addDrawable(&battery);
@@ -340,9 +447,6 @@ void EPD_MainMenuWithQueue(){
 	Screen mainMenu = Screen();
 
 
-
-	UWORD containerWidth = 138;
-	UWORD containerHeight = 65;
 
 	Container BackContainer = Container(169,415,containerWidth,containerHeight);
 	Rectangle backRectangle =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
@@ -531,28 +635,25 @@ void EPD_MainMenuWithQueue(){
 	setPointInitializeConnections(setPointScreen);
 
 
+//	Rectangle backRectangleSetPoint =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
+//	Rectangle editRectangleSetPoint =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
+//	Rectangle saveRectangleSetPoint =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
 
-	Container BackContainerSetPoint = Container(169,415,containerWidth,containerHeight);
 
-	BackContainerSetPoint.addDrawable(&backRectangle);
-	BackContainerSetPoint.addDrawable(&backText);
 
-	Container deleteSetPoint = Container(331,415,containerWidth,containerHeight);
-	DrawText deleteTextSetPoint = DrawText(20,20,"Delete",&Font16, WHITE, BLACK);
+	backContainerSetPoint.addDrawable(&backRectangleSetPoint);
+	backContainerSetPoint.addDrawable(&backTextSetPoint);
 
-	deleteSetPoint.addDrawable(&backRectangle);
-	deleteSetPoint.addDrawable(&deleteTextSetPoint);
+	deleteContainerSetPoint.addDrawable(&deleteRectangleSetPoint);
+	deleteContainerSetPoint.addDrawable(&deleteTextSetPoint);
 
-	Container editContainerSetPoint = Container(493,415,containerWidth,containerHeight);
-	DrawText editTextSetPoint = DrawText(20,20,"Edit",&Font16, WHITE, BLACK);
 
-	editContainerSetPoint.addDrawable(&backRectangle);
+	editContainerSetPoint.addDrawable(&editRectangleSetPoint);
 	editContainerSetPoint.addDrawable(&editTextSetPoint);
 
-//	setPointScreen.addDrawable(&setPointDemoContainer);
 
-	setPointScreen.addDrawable(&BackContainerSetPoint);
-	setPointScreen.addDrawable(&deleteSetPoint);
+	setPointScreen.addDrawable(&backContainerSetPoint);
+	setPointScreen.addDrawable(&deleteContainerSetPoint);
 	setPointScreen.addDrawable(&editContainerSetPoint);
 
 	screenManager.addScreen(ScreenType::HomeScreen, &openingScreen);
@@ -577,6 +678,15 @@ void EPD_MainMenuWithQueue(){
 	openingScreen.setButtonCallback([](Button bt){
 		State currState = State::Error;
 		switch(bt){
+		case Button::Up:
+//			setPointContainer.
+			setPointRectangle.resetUpdated();
+			increaseSetPointOpeningScreen();
+			break;
+		case Button::Down:
+			setPointRectangle.resetUpdated();
+			decreaseSetPointOpeningScreen();
+			break;
 		case Button::Middle:
 			currState = State::Interact;
 		    xQueueSend(stateQueue, &currState, portMAX_DELAY);
@@ -659,17 +769,29 @@ void EPD_MainMenuWithQueue(){
 		}
 		if (xQueueReceive(stateQueue, &state, 10) == pdPASS) {
 			switch(state){
-			case State::UpdateSetPointIncrease:
+			case State::RefreshActiveScreen:
+				screenManager.updateActiveScreen();
+				break;
+			case State::IncreaseSetPoint:
 				LOG_INFO("Increasing Setpoint OpeningScreen");
 				increaseSetPointOpeningScreen();
 				screenManager.updateActiveScreen();
+				break;
 
-			case State::UpdateSetPointDecrease:
+
+			case State::DecreaseSetPoint:
 				LOG_INFO("Decreasing Setpoint OpeningScreen");
 				decreaseSetPointOpeningScreen();
 				screenManager.updateActiveScreen();
+				break;
+
+			case State::FullRefreshActiveScreen:
+				LOG_INFO("Opening Screen");
+				screenManager.displayActiveScreen();
 			case State::HomeScreen:
 				LOG_INFO("Opening Screen");
+				setPointContainer.resetUpdated();
+				actualTemperature.resetUpdated();
 				screenManager.setNewActiveScreen(ScreenType::HomeScreen);
 				break;
 			case State::MainMenuScreen:
