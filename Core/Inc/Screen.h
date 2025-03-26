@@ -23,6 +23,7 @@
 
 extern DaySchedule schedule[];
 extern UBYTE currentDay;
+extern UBYTE currentSetPointSelection;
 class Screen {
 public:
 	using Callback = void (*)(Button button);
@@ -81,6 +82,10 @@ public:
 
     	return fb.getImage();
     }
+
+//    void renderAll(){
+//
+//    }
 
     virtual void optimizedRender() {
 
@@ -165,7 +170,11 @@ public:
     	buttonCb = cb;
     }
 
-
+    virtual void increaseValue(){}
+    virtual void decreaseValue(){}
+    virtual void cancel(){}
+    virtual void save(){}
+    virtual void deleteSetPoint(){}
 
 protected:
 
@@ -243,28 +252,45 @@ public:
 
     }
 
+    virtual void highlightCurrentElement(bool highlight){
+
+    }
+
     void setPointUpdate() {
     	int currSelection = Screen::currentSelection;
     	DaySchedule day = schedule[currentDay];
     	if(currSelection < day.setpointCount){
     		SetPointData data = day.setpoints[currSelection];
-//    		UWORD minutes = data.minute;
-    		setPointTempText.setNumber(data.temperature);
-    		setPointMinutesText.setNumber(data.minute);
-    		setPointHoursText.setNumber(data.hour);
-    		setPointHoursText.setDigit(0);
-    		setPointMinutesText.setDigit(0);
-    		setPointTempText.setDigit(1);
+    		minutes = data.minute;
+    		temperature = data.temperature;
+    		hours = data.hour;
+
 
 
     	}else{
-    		setPointTempText.setNumber(22);
-    		setPointMinutesText.setNumber(0);
-    		setPointHoursText.setNumber(11);
-    		setPointHoursText.setDigit(0);
-    		setPointMinutesText.setDigit(0);
-    		setPointTempText.setDigit(1);
+    		minutes = 0;
+    		temperature = 22;
+    		hours = 11;
+
     	}
+    	setPointUpdateElements();
+    }
+
+    void setPointUpdateElements(){
+    	snprintf(hoursBuffer, sizeof(hoursBuffer), "%d", hours);
+    	setPointHoursContainer.resetClear();
+		setPointHoursText.setString(hoursBuffer);
+
+    	snprintf(temperatureBuffer, sizeof(temperatureBuffer), "%.1f", temperature);
+    	setPointTempContainer.resetClear();
+    	setPointTempText.setString(temperatureBuffer);
+
+		snprintf(minutesBuffer, sizeof(minutesBuffer), "%d", minutes);
+    	setPointMinutesContainer.resetClear();
+		setPointMinutesText.setString(minutesBuffer);
+
+
+		setPointAMText.setString(isAm ? "AM":"PM");
     }
 
     virtual void selectPrev() override{
@@ -282,6 +308,7 @@ public:
     	else {
     		Screen::selectPrev();
     	}
+    	currentSetPointSelection = currentSelection;
     	setPointUpdate();
     }
 
@@ -297,7 +324,17 @@ public:
     	else {
     		Screen::selectNext();
     	}
+    	currentSetPointSelection = currentSelection;
+
     	setPointUpdate();
+    }
+
+    void refreshBoxes(){
+    	setPointTempRectangle.resetClear();
+    	setPointHoursRectangle.resetClear();
+    	setPointMinutesRectangle.resetClear();
+    	setPointUpdate();
+
     }
 
     virtual void addDrawable(Drawable* obj) {
@@ -306,6 +343,8 @@ public:
 
 				if(obj->interactable() && currentSetPointElement == -1){
 					currentSetPointElement = setPointElementsCount;
+			    	currentSetPointSelection = currentSelection;
+
 				}
 
 				setPointElements[setPointElementsCount++] = obj;
@@ -317,16 +356,96 @@ public:
 
     }
 
+    void setSetPoint(bool setSetPoint){
+    	isNewSetPoint = setSetPoint;
+    }
+
     void addSetpoint(){
+    	currentSetPointElement = 0;
     	isNewSetPoint = true;
     }
     void editCurrentSetPoint(){
+    	currentSetPointElement = 0;
     	isNewSetPoint = true;
+//    	setPoin
+		setPointElements[currentSetPointElement]->highlight(true);
+    	setPointUpdate();
     }
+
+    virtual void increaseValue(){
+    	if(currentSetPointElement ==0){
+    		hours = (hours+1) % 24;
+    	}
+    	else if(currentSetPointElement ==1){
+    		minutes = (minutes+5) % 60;
+//    		hours+=5;
+    	}
+    	else if(currentSetPointElement ==2){
+    		isAm = !isAm;
+    	}
+    	else{
+    		temperature = (temperature + 0.5 > 30.0 ? 15.0: temperature+0.5);
+    	}
+    	setPointUpdateElements();
+    }
+    virtual void decreaseValue(){
+    	if(currentSetPointElement ==0){
+    		hours = (hours < 0 ? 23 : hours -1);
+    	}
+    	else if(currentSetPointElement ==1){
+    		minutes = (minutes < 0 ? 55 : minutes -5);
+    	}
+    	else if(currentSetPointElement ==2){
+    		isAm = !isAm;
+    	}
+    	else{
+    		temperature  = (temperature < 7 ? 30 : temperature - 0.5);
+    	}
+    	setPointUpdateElements();
+    }
+    virtual void cancel(){
+    	setPointUpdate();
+		setPointElements[currentSetPointElement]->highlight(false);
+    	isNewSetPoint = false;
+
+    }
+
+    void remove(){
+		setPointElements[currentSetPointElement]->highlight(false);
+    	isNewSetPoint = false;
+    }
+
+    virtual void save(){
+		if (currentDay < 0 || currentDay >= DAYS_IN_WEEK)
+			return ;  // out of bounds
+
+		DaySchedule& day = schedule[currentDay];
+
+		if (day.setpointCount >= MAX_SETPOINTS_PER_DAY)
+			return ;  // no room left
+
+		day.setpoints[currentSetPointSelection] = {temperature,hours,minutes,isAm};
+//		return true;
+//		if(currentSetPointSelection +1
+		if(currentSetPointSelection == day.setpointCount){
+			day.setpointCount++;
+		}
+//		}
+		updateSetPointDynamicElements(currentDay);
+//		day.setpointCount++;
+
+
+    }
+    virtual void deleteSetPoint(){}
+
 private:
 
 
-//    char hoursBuffer[50];
+    char hoursBuffer[10];
+    char isAmBuffer[10];
+    char temperatureBuffer[10];
+    char minutesBuffer[10];
+
     int minutes;
 	int hours;
     float temperature;
@@ -334,17 +453,21 @@ private:
 
     Container setPointHoursContainer = Container(340,60,120,130);
     HighLightOnInteractRectangle setPointHoursRectangle = HighLightOnInteractRectangle(0, 0, 120, 131, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
-    HighlightableDrawText setPointHoursText = HighlightableDrawText(20,20,hours,&Font24,1, WHITE, BLACK);
+    HighlightableDrawText setPointHoursText = HighlightableDrawText(20,20,"",&Font24, WHITE, BLACK);
 
 //    char minutesBuffer[50];
     Container setPointMinutesContainer = Container(502,60,120,130);
     HighLightOnInteractRectangle setPointMinutesRectangle = HighLightOnInteractRectangle(0, 0, 120, 131, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
-    HighlightableDrawText setPointMinutesText = HighlightableDrawText(20,20,minutes,&Font24, 1, WHITE, BLACK);
+    HighlightableDrawText setPointMinutesText = HighlightableDrawText(20,20,"",&Font24, WHITE, BLACK);
 
 //    char tempBuffer[50];
     Container setPointTempContainer = Container(502,240,120,131);
     HighLightOnInteractRectangle setPointTempRectangle = HighLightOnInteractRectangle(0, 0, 120, 131, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
-    HighlightableDrawText setPointTempText = HighlightableDrawText(20,20,temperature,&Font24,1, WHITE, BLACK);
+    HighlightableDrawText setPointTempText = HighlightableDrawText(20,20,"",&Font24, WHITE, BLACK);
+
+//    Container setPointTempContainer = Container(502,240,120,131);
+//    HighLightOnInteractRectangle setPointTempRectangle = HighLightOnInteractRectangle(0, 0, 120, 131, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);;
+    HighlightableDrawText setPointAMText = HighlightableDrawText(20,20,"",&Font24, WHITE, BLACK);
 
     bool isNewSetPoint;
 
@@ -353,14 +476,5 @@ private:
 	int setPointElementsCount;
 //	bool isNewSetPoint;
 };
-
-//
-//class SetPointScreen: public Screen {
-//
-//private:
-//	std::unique_ptr<Drawable, FreeRTOSDeleter> dynamicDrawables;
-//};
-
-
 
 #endif /* INC_SCREEN_H_ */

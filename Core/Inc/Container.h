@@ -28,9 +28,9 @@ public:
     	UWORD y = yStart + yMove;
 
         for (int i = 0; i < drawableCount; i++) {
-			if(updated){
-				drawables[i]->clearArea(fb, x, y);
-			}
+//			if(updated){
+//				drawables[i]->clearArea(fb, x, y);
+//			}
 			if(!hide){
 				drawables[i]->draw(fb, x, y);
 			}
@@ -45,8 +45,14 @@ public:
         }
     }
 
+    void resetClear() override {
+        for (int i = 0; i < drawableCount; i++) {
+            drawables[i]->resetClear();
+        }
+    }
+
     void highlight(bool isSelected) override{
-    	updated = true;
+//    	updated = true;
     	for (int i = 0; i < drawableCount; i++) {
             drawables[i]->highlight(isSelected);
         }

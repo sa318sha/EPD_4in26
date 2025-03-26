@@ -30,16 +30,28 @@ protected:
 public:
 
 	void setNumber(double N){
+//		if(N )
+		if(N != Number){
+			updated = true;
+		}
 		Number = N;
+
+	}
+
+	void setString(const char* string){
+		pString = string;
 		updated = true;
 	}
 	void setDigit(UWORD D){
+		if(digit != D){
+			updated = true;
+		}
 		digit = D;
-		updated = true;
+
 	}
     void draw(FrameBuffer& fb, UWORD xMove = 0, UWORD yMove = 0) override{
     	if(updated){
-			if(pTime != nullptr)
+             if(pTime != nullptr)
 				fb.Paint_DrawTime(Xstart + xMove, Ystart + yMove, pTime, Font, Color_Foreground, Color_Background);
 			else if (pString != nullptr){
 				fb.Paint_DrawString_EN( Xstart + xMove,  Ystart + yMove,  pString, Font,  Color_Foreground,  Color_Background); // we want to pass in a array

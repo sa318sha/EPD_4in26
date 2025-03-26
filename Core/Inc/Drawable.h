@@ -40,6 +40,8 @@ public:
     	updated = true;
     }
 
+    virtual void resetClear(){}
+
     void triggerAction() {
     	if (onSelect && isInteractable)
     		onSelect();
