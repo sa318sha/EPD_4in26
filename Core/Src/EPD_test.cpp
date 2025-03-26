@@ -16,7 +16,7 @@
 #include "queue.h"
 #include "task.h"
 #include "EPD_test.h"
-//#include "TextContainer.h"
+#include "mcufont.h"
 
 #define Imagesize (((EPD_4in26_WIDTH % 8 == 0)? (EPD_4in26_WIDTH / 8 ): (EPD_4in26_WIDTH / 8 + 1)) * EPD_4in26_HEIGHT)
 //static UBYTE BlackImage[Imagesize];
@@ -126,7 +126,103 @@ EPD_4in26 ePaperGlobal(RST_GPIO_Port, RST_Pin,
 									);
 
 
+//typedef struct {
+//	FrameBuffer* buffer;
+//    uint16_t width;
+//    uint16_t height;
+//    uint16_t y;
+//    const struct mf_font_s *font;
+//    bool color;
+//} state_t;
+//
+//static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state)
+//{
+//    state_t *s = (state_t*)state;
+//    uint32_t pos;
+//    int16_t value;
+//
+//    if (y < 0 || y >= s->height) return;
+//    if (x < 0 || x + count >= s->width) return;
+//    if (alpha < 1) return;
+//
+//    while (count--)
+//    {
+//
+//    	s->buffer->Paint_SetPixel(x, y, s->color); // black = 0
+//
+////        pos = (uint32_t)s->width * y + x;
+////        value = s->buffer[pos];
+////        value -= alpha;
+////        if (value < 0) value = 0;
+////        s->buffer[pos] = value;
+//
+//        x++;
+//    }
+//}
+//
+//static uint8_t character_callback(int16_t x, int16_t y, mf_char character,
+//                                  void *state)
+//{
+//    state_t *s = (state_t*)state;
+//    return mf_render_character(s->font, x, y, character, pixel_callback, state);
+//}
 
+void EPD_text(){
+	EPD_4in26 ePaper(RST_GPIO_Port, RST_Pin,
+	    		DC_GPIO_Port, DC_Pin,
+				SPI_CS_GPIO_Port, SPI_CS_Pin,
+	    		BUSY_GPIO_Port, BUSY_Pin,
+	    		PWR_GPIO_Port, PWR_Pin,
+				&hspi1
+				);
+	ePaper.pinInit();
+
+	ePaper.EPD_4in26_Init();
+	ePaper.EPD_4in26_Clear();
+
+	HAL_Delay(500);
+	FrameBuffer& fb = FrameBuffer::getInstance();
+    //FrameBuffer fb(frameBufferScreen,EPD_4in26_WIDTH, EPD_4in26_HEIGHT,ROTATE_0,WHITE);
+    fb.Paint_Clear(BLACK);
+    fb.Paint_DrawRectangle(80, 70, 130, 120, BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
+    //fb.Paint_DrawNum(10, 33, 123456789, &Font12, BLACK, WHITE);
+    fb.Paint_DrawString(0,200, "He ate my heart :c", "Century30", WHITE, WHITE);
+    fb.Paint_DrawString(0,300, "Medium", "Century40", WHITE, WHITE);
+    fb.Paint_DrawString(0,0, "12°C", "Century40", WHITE, WHITE);
+
+
+//	  state_t state = {};
+//	  state.height = 200;
+//	  state.width = 600;
+//	  state.buffer = std::addressof(FrameBuffer::getInstance());
+//	  state.color = WHITE;
+//
+//	  //state.buffer = (uint8_t*)malloc(state.height*state.width);
+////	  if(!state.buffer){
+////		  fb.Paint_DrawNum(10, 33, 123, &Font12, BLACK, WHITE);
+////		  //printf("allocation failed\n");
+////	  }
+////	  memset(state.buffer, 255, state.height*state.width);
+//	  state.font = mf_find_font("Century90bw");
+//	  //font.;
+//	  if(!state.font){
+//		  //fb.Paint_DrawNum(10, 33, 1234567890, &Font12, BLACK, WHITE);
+//		  fb.Paint_DrawNum(10, 33, 1234567890, &Font12, WHITE, BLACK); // white text
+//		  //printf("Font not found!\n");
+//	  }
+//	  int anchor = state.width / 2;
+//	  const char* str = "Low Battery";
+//	  mf_render_aligned(state.font, anchor, 0,
+//		  MF_ALIGN_CENTER, str, strlen(str),
+//		  character_callback, (void*)&state);
+
+    ePaper.EPD_4in26_Display_Base(fb.getImage());
+
+	  //free(state.buffer);
+
+
+
+}
 
 void updateSetPointDynamicElements(UBYTE index){
 	currentDay = index;
@@ -346,21 +442,25 @@ void EPD_MainMenuWithQueue(){
 
 	Container BackContainer = Container(169,415,containerWidth,containerHeight);
 	Rectangle backRectangle =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-	DrawText backText =  DrawText(20,20,"Back",&Font20, WHITE, BLACK);
+	DrawText backText =  DrawText(20,20,"Back",&Font24, WHITE, BLACK);
+	// TODO FONT was 20
 
 	BackContainer.addDrawable(&backRectangle);
 	BackContainer.addDrawable(&backText);
 //
 	Container homeContainer = Container(331,415,containerWidth,containerHeight);
 //		Rectangle* homeRectangle = new Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-	DrawText homeText = DrawText(20,20,"Home",&Font20, WHITE, BLACK);
+	DrawText homeText = DrawText(20,20,"Home",&Font24, WHITE, BLACK);
+	// TODO FONT was 20
+
 
 	homeContainer.addDrawable(&backRectangle);
 	homeContainer.addDrawable(&homeText);
 
 	Container selectContainer = Container(493,415,containerWidth,containerHeight);
 //		Rectangle* selectRectangle = new Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-	DrawText selectText = DrawText(20,20,"Select",&Font20, WHITE, BLACK);
+	DrawText selectText = DrawText(20,20,"Select",&Font24, WHITE, BLACK);
+	// TODO FONT was 20
 
 	selectContainer.addDrawable(&backRectangle);
 	selectContainer.addDrawable(&selectText);

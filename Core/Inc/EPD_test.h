@@ -59,6 +59,7 @@ enum class State {
 	Error,
 };
 
+void EPD_text();
 void EPD_basic_controller_test();
 void EPD_frame_buffer_draw_test();
 void EPD_screen_multiple_objects();

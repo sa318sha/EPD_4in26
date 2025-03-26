@@ -68,6 +68,8 @@ void FrameBuffer::Paint_initImage(UWORD Width, UWORD Height, UWORD Rotate, UWORD
     }
 }
 
+
+
 void FrameBuffer::Paint_NewImage(UBYTE *image, UWORD Width, UWORD Height, UWORD Rotate, UWORD Color)
 {
 //    this->Image = NULL;
@@ -536,6 +538,46 @@ void FrameBuffer::Paint_DrawChar(UWORD Xpoint, UWORD Ypoint, const char Acsii_Ch
             ptr++;
     }// Write all
 }
+
+static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state)
+{
+    state_t *s = (state_t*)state;
+    uint32_t pos;
+    int16_t value;
+
+    if (y < 0 || y >= s->height) return;
+    if (x < 0 || x + count >= s->width) return;
+    if (alpha < 1) return;
+
+    while (count--)
+    {
+    	s->fb->Paint_SetPixel(x, y, s->color); // black = 0
+        x++;
+    }
+}
+
+static uint8_t character_callback(int16_t x, int16_t y, mf_char character, void *state)
+{
+    state_t *s = (state_t*)state;
+    return mf_render_character(s->font, x, y, character, pixel_callback, state);
+}
+
+void FrameBuffer::Paint_DrawString(UWORD Xstart, UWORD Ystart, const char * pString, char* Font, UWORD Color_Foreground, UWORD Color_Background)
+{
+
+	  state_t state = {this, EPD_4in26_WIDTH, EPD_4in26_HEIGHT, 0, nullptr, (bool)Color_Foreground};
+
+	  state.font = mf_find_font(Font);
+	  if(!state.font){
+		  this->Paint_DrawString_EN(Xstart, Ystart, pString, &Font12, WHITE, BLACK); // white text
+		  return;
+	  }
+	  mf_render_aligned(state.font, Xstart, Ystart,
+		  MF_ALIGN_LEFT, pString, strlen(pString),
+		  character_callback, (void*)&state);
+
+}
+
 
 /******************************************************************************
 function:	Display the string

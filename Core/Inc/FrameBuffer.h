@@ -16,6 +16,7 @@
 #include <memory>
 #include "FreeRTOSMemory.hpp"
 #include "Debug.h"
+#include "mcufont.h"
 /**
  * Image attributes
 **/
@@ -121,8 +122,7 @@ class FrameBuffer {
 private:
     static std::unique_ptr<FrameBuffer, FreeRTOSDeleter> instance; // Unique pointer for singleton
     std::unique_ptr<UBYTE[], FreeRTOSDeleter> Image;  // 48KB heap-allocated buffer	UWORD Width;
-//	std::unique_ptr<UBYTE[], FreeRTOSDeleter> Image;
-//	UBYTE* Image;
+
 	UWORD Width;
 	UWORD Height;
 	UWORD WidthMemory;
@@ -134,9 +134,7 @@ private:
 	UWORD HeightByte;
 	UWORD Scale;
 
-
 	FrameBuffer(UWORD Width = EPD_4in26_WIDTH, UWORD Height= EPD_4in26_HEIGHT, UWORD Rotate = ROTATE_0, UWORD Color = WHITE);
-
 public:
 
 	FrameBuffer() = delete;
@@ -158,7 +156,6 @@ public:
 		return Image.get();
 	}
 
-
 	void Paint_initImage(UWORD Width, UWORD Height, UWORD Rotate, UWORD Color);
 	void Paint_NewImage(UBYTE *image, UWORD Width, UWORD Height, UWORD Rotate, UWORD Color);
 //	void Paint_SelectImage(UBYTE *image);
@@ -178,6 +175,7 @@ public:
 
 	//Display string
 	void Paint_DrawChar(UWORD Xstart, UWORD Ystart, const char Acsii_Char, sFONT* Font, UWORD Color_Foreground, UWORD Color_Background);
+	void Paint_DrawString(UWORD Xstart, UWORD Ystart, const char * pString, char* Font, UWORD Color_Foreground, UWORD Color_Background);
 	void Paint_DrawString_EN(UWORD Xstart, UWORD Ystart, const char * pString, sFONT* Font, UWORD Color_Foreground, UWORD Color_Background);
 	void Paint_DrawString_CN(UWORD Xstart, UWORD Ystart, const char * pString, cFONT* font, UWORD Color_Foreground, UWORD Color_Background);
 	void Paint_DrawNum(UWORD Xpoint, UWORD Ypoint, int32_t Nummber, sFONT* Font, UWORD Color_Foreground, UWORD Color_Background);
@@ -232,6 +230,20 @@ public:
 		return WidthMemory;
 	}
 };
+
+static void pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state);
+static uint8_t character_callback(int16_t x, int16_t y, mf_char character, void *state);
+/**
+ * Contains information for font rendering
+ */
+typedef struct {
+	FrameBuffer* fb;
+    uint16_t width;
+    uint16_t height;
+    uint16_t y;
+    const struct mf_font_s *font;
+    bool color;
+} state_t;
 
 #endif
 
