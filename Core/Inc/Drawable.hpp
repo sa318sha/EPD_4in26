@@ -5,12 +5,12 @@
  *      Author: kobru
  */
 
-#ifndef INC_DRAWABLE_H_
-#define INC_DRAWABLE_H_
+#ifndef INC_DRAWABLE_HPP_
+#define INC_DRAWABLE_HPP_
 
+#include <FrameBuffer.hpp>
 #include "main.h"
 #include "../Fonts/fonts.h"
-#include "FrameBuffer.h"
 #include <functional>  // For std::function
 
 class Drawable {
@@ -88,4 +88,4 @@ protected:
 };
 
 
-#endif /* INC_DRAWABLE_H_ */
+#endif /* INC_DRAWABLE_HPP_ */

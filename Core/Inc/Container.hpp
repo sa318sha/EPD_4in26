@@ -5,10 +5,10 @@
  *      Author: kobru
  */
 
-#ifndef INC_CONTAINER_H_
-#define INC_CONTAINER_H_
+#ifndef INC_CONTAINER_HPP_
+#define INC_CONTAINER_HPP_
 
-#include "Drawable.h"
+#include <Drawable.hpp>
 //#include <vector>
 
 #define MAX_CONTAINER_DRAWABLES 10  // Set a reasonable limit for contained drawables
@@ -195,4 +195,4 @@ private:
 //
 //}
 
-#endif /* INC_CONTAINER_H_ */
+#endif /* INC_CONTAINER_HPP_ */

@@ -17,13 +17,13 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <Debug.hpp>
+#include <EPD_test.hpp>
 #include "main.h"
 #include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Debug.h"
-#include "EPD_test.h"
 #include "semphr.h"
 /* USER CODE END Includes */
 

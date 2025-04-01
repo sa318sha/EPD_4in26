@@ -5,13 +5,13 @@
  *      Author: kobru
  */
 
-#ifndef INC_SCREENMANAGER_H_
-#define INC_SCREENMANAGER_H_
+#ifndef INC_SCREENMANAGER_HPP_
+#define INC_SCREENMANAGER_HPP_
 
+#include <EPD_4in26.hpp>
+#include <Screen.hpp>
+#include <ScreenState.hpp>
 #include <vector>
-#include "Screen.h"
-#include "ScreenState.h"
-#include "EPD_4in26.h"
 
 enum class ScreenType {
     HomeScreen,
@@ -56,8 +56,11 @@ public:
 	void onInteract();
 	void nextInteractable();
 	void prevInteractable();
+	void up();
+	void down();
 
 	void deleteSetPoint();
+	void deleteSelection();
 private:
 	EPD_4in26* EPDController;
     Screen* currentScreen;
@@ -73,4 +76,4 @@ private:
 
 
 
-#endif /* INC_SCREENMANAGER_H_ */
+#endif /* INC_SCREENMANAGER_HPP_ */

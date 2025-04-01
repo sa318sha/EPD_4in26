@@ -5,10 +5,10 @@
  *      Author: kobru
  */
 
-#ifndef INC_CIRCLE_H_
-#define INC_CIRCLE_H_
+#ifndef INC_CIRCLE_HPP_
+#define INC_CIRCLE_HPP_
 
-#include "Drawable.h"
+#include <Drawable.hpp>
 
 class Circle: public Drawable
 {
@@ -41,4 +41,4 @@ public:
 
 
 
-#endif /* INC_CIRCLE_H_ */
+#endif /* INC_CIRCLE_HPP_ */

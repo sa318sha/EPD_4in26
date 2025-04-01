@@ -5,11 +5,11 @@
  *      Author: kobru
  */
 
-#ifndef INC_RECTANGLE_H_
-#define INC_RECTANGLE_H_
+#ifndef INC_RECTANGLE_HPP_
+#define INC_RECTANGLE_HPP_
 
 
-#include "Drawable.h"
+#include <Drawable.hpp>
 
 class Rectangle: public Drawable
 {
@@ -137,4 +137,4 @@ private:
 
 
 
-#endif /* INC_RECTANGLE_H_ */
+#endif /* INC_RECTANGLE_HPP_ */

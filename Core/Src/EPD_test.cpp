@@ -1,21 +1,21 @@
-#include "EPD_4in26.h"
-#include "FrameBuffer.h"
-#include "Screen.h"
-#include "Rectangle.h"
-#include "Circle.h"
+#include <Circle.hpp>
+#include <Container.hpp>
+#include <Debug.hpp>
+#include <EPD_4in26.hpp>
+#include <EPD_test.hpp>
+#include <FrameBuffer.hpp>
+#include <Rectangle.hpp>
 #include "main.h"
-#include "ScreenManager.h"
 #include <queue>
-#include "Debug.h"
-#include "Container.h"
 #include "BitMap.hpp"
 #include "image_data.hpp"
 #include "DrawText.hpp"
 #include <stdio.h>
+#include <Screen.hpp>
+#include <ScreenManager.hpp>
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "task.h"
-#include "EPD_test.h"
 //#include "TextContainer.h"
 
 #define Imagesize (((EPD_4in26_WIDTH % 8 == 0)? (EPD_4in26_WIDTH / 8 ): (EPD_4in26_WIDTH / 8 + 1)) * EPD_4in26_HEIGHT)
@@ -106,6 +106,9 @@ BitMap wifi = BitMap(gImage_wifi,730,0, 64,64,WHITE);
 Container setPointContainer = Container(358,121,150,150);
 Rectangle setPointRectangle = Rectangle(0,0,250,31,WHITE,DOT_PIXEL_1X1, DRAW_FILL_FULL);
 DrawText setPointText = DrawText(0,0,setPointBuffer,&Font20, WHITE, BLACK);
+
+Container actualTemperatureContainer = Container(302,174,150,150);
+Rectangle actualTemperatureRectangle = Rectangle(0,0,250,31,WHITE,DOT_PIXEL_1X1, DRAW_FILL_FULL);
 DrawText actualTemperature = DrawText(302,174,temparatureBuffer,&Font24, WHITE, BLACK);
 
 SetPointScreen setPointScreen = SetPointScreen();
@@ -138,6 +141,9 @@ EPD_4in26 ePaperGlobal(RST_GPIO_Port, RST_Pin,
 						    		PWR_GPIO_Port, PWR_Pin,
 									&hspi1
 									);
+
+
+
 
 
 void updateSetPointDynamicElements(UBYTE index){
@@ -215,6 +221,7 @@ void deleteSetpointData() {
 
 
 //	xQueueSend(stateQueue, &state, portMAX_DELAY);
+
 }
 
 
@@ -272,7 +279,7 @@ void setPointScreenCallback1(Button bt){
 		deleteSetpointData();
 //		screenMa
 		updateSetPointDynamicElements(currentDay);
-		setPointScreen.refreshBoxes();
+//		setPointScreen.refreshBoxes();
 //		setPointScreen.setPointUpdate();
 		currState = State::RefreshActiveScreen;
 	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
@@ -319,7 +326,7 @@ void setPointScreenCallback2(Button bt){
 		saveSetpointElmenents();
 		updateSetPointDynamicElements(currentDay);
 		setPointScreen.remove();
-		setPointScreen.refreshBoxes();
+//		setPointScreen.refreshBoxes();
 
 	    deleteTextSetPoint.setString("Delete");
 	    editTextSetPoint.setString("Edit");
@@ -335,7 +342,6 @@ void setPointScreenCallback2(Button bt){
 
 		break;
 	case Button::Right:
-		setPointScreen.refreshBoxes();
 		currState = State::NextElement;
 	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
 		break;
@@ -374,10 +380,6 @@ void setPointScreenCallback2(Button bt){
 	}
 }
 
-void deleteCurrentSetPoint(){
-
-}
-
 void increaseSetPointOpeningScreen(){
 	setPoint += 0.5;
 
@@ -398,9 +400,26 @@ void decreaseSetPointOpeningScreen(){
 
 }
 
+void decreaseSetPointOpeningScreen(){
+	setPoint -= 0.5;
+
+	snprintf(setPointBuffer, sizeof(setPointBuffer), "Setpoint: %.1fC", setPoint);
+	setPointText.updatedText();
+	State state = State::RefreshActiveScreen;
+	xQueueSend(stateQueue, &state, portMAX_DELAY);
+
+}
+
 
 void EPD_MainMenuWithQueue(){
 
+	ErrorModel& errorModel = ErrorModel::getInstance();
+	errorModel.clearErrors(); // optional: start fresh
+
+	errorModel.addError("SENSOR", "Sensor disconnected");
+	errorModel.addError("WIFI", "Connection lost");
+	errorModel.addError("PIPE FREEZING", "Pipe Freezing detected");
+	errorModel.addError("TEMP", "Overheat detected");
 
 
 
@@ -408,7 +427,7 @@ void EPD_MainMenuWithQueue(){
 
 	Screen ClockDateScreen = Screen();
 
-	Screen alertScreen = Screen();
+//	Screen alertScreen = Screen();
 
 
 
@@ -428,12 +447,16 @@ void EPD_MainMenuWithQueue(){
 	setPointContainer.addDrawable(&setPointRectangle);
 	setPointContainer.addDrawable(&setPointText);
 
+	actualTemperatureContainer.addDrawable(&actualTemperatureRectangle);
+	actualTemperatureContainer.addDrawable(&actualTemperature);
+
+
 
 	container1.addDrawable(&rect1);
 	container1.addDrawable(&bitmap);
 	openingScreen.addDrawable(&container1);
 	openingScreen.addDrawable(&setPointContainer);
-	openingScreen.addDrawable(&actualTemperature);
+	openingScreen.addDrawable(&actualTemperatureContainer);
 	openingScreen.addDrawable(&timeText);
 	openingScreen.addDrawable(&battery);
 	openingScreen.addDrawable(&wifi);
@@ -493,7 +516,8 @@ void EPD_MainMenuWithQueue(){
 	ClockContainer.addDrawable(&ClockText);
 
 	Container AlertContainer = Container(26,273,mainMenuWidth,mainMenuHeight, [](){
-
+		State state = State::AlertScreen;
+		xQueueSend(stateQueue, &state, portMAX_DELAY);
 	});
 	HighLightOnInteractRectangle AlertRectangle = HighLightOnInteractRectangle(0, 0, mainMenuWidth, mainMenuHeight, BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
 	HighlightableDrawText AlertText = HighlightableDrawText(20,20,"Alerts",&Font24, WHITE, BLACK);
@@ -635,12 +659,6 @@ void EPD_MainMenuWithQueue(){
 	setPointInitializeConnections(setPointScreen);
 
 
-//	Rectangle backRectangleSetPoint =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-//	Rectangle editRectangleSetPoint =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-//	Rectangle saveRectangleSetPoint =  Rectangle(0, 0, containerWidth, containerHeight, BLACK, DOT_PIXEL_2X2, DRAW_FILL_EMPTY);
-
-
-
 	backContainerSetPoint.addDrawable(&backRectangleSetPoint);
 	backContainerSetPoint.addDrawable(&backTextSetPoint);
 
@@ -656,15 +674,50 @@ void EPD_MainMenuWithQueue(){
 	setPointScreen.addDrawable(&deleteContainerSetPoint);
 	setPointScreen.addDrawable(&editContainerSetPoint);
 
+
+
+	WarningScreen warningScreen = WarningScreen([](Button button){
+		State currState = State::Error;
+
+	switch (button){
+	case Button::Left:
+		currState = State::PrevScreen;
+	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+		break;
+	case Button::Middle:
+		currState = State::Delete;
+	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+
+
+		break;
+
+	case Button::Right:
+		break;
+
+	case Button::Up:
+		currState = State::PrevElement;
+	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+	    break;
+	case Button::Down:
+		currState = State::NextElement;
+	    xQueueSend(stateQueue, &currState, portMAX_DELAY);
+	    break;
+
+	default:
+		break;
+	}
+});
+
 	screenManager.addScreen(ScreenType::HomeScreen, &openingScreen);
 	screenManager.addScreen(ScreenType::MainMenuScreen, &mainMenu);
 	screenManager.addScreen(ScreenType::ScheduleScreen, &scheduleScreen);
 	screenManager.addScreen(ScreenType::SetPointScreen, &setPointScreen);
-	screenManager.addScreen(ScreenType::AlertScreen, &alertScreen);
+//	screenManager.addScreen(ScreenType::AlertScreen, &alertScreen);
+	screenManager.addScreen(ScreenType::AlertScreen, &warningScreen);
 
 	screenManager.initFirstTime();
 //
-	screenManager.setNewActiveScreen(ScreenType::ScheduleScreen);
+	screenManager.setNewActiveScreen(ScreenType::AlertScreen);
 //	screenManager.displayActiveScreen();
 
 
@@ -769,15 +822,23 @@ void EPD_MainMenuWithQueue(){
 		}
 		if (xQueueReceive(stateQueue, &state, 10) == pdPASS) {
 			switch(state){
+			case State::Delete:
+				screenManager.deleteSelection();
+				screenManager.updateActiveScreen();
+
 			case State::RefreshActiveScreen:
 				screenManager.updateActiveScreen();
 				break;
 			case State::IncreaseSetPoint:
 				LOG_INFO("Increasing Setpoint OpeningScreen");
 				increaseSetPointOpeningScreen();
+//				openingScreen.();
 				screenManager.updateActiveScreen();
+
 				break;
 
+			case State::TemperatureUpdate:
+				LOG_INFO("Setpoint Updated");
 
 			case State::DecreaseSetPoint:
 				LOG_INFO("Decreasing Setpoint OpeningScreen");
@@ -791,8 +852,13 @@ void EPD_MainMenuWithQueue(){
 			case State::HomeScreen:
 				LOG_INFO("Opening Screen");
 				setPointContainer.resetUpdated();
-				actualTemperature.resetUpdated();
+				actualTemperatureContainer.resetUpdated();
 				screenManager.setNewActiveScreen(ScreenType::HomeScreen);
+				break;
+
+			case State::AlertScreen:
+				LOG_INFO("Opening Screen");
+				screenManager.setNewActiveScreen(ScreenType::AlertScreen);
 				break;
 			case State::MainMenuScreen:
 				LOG_INFO("Main Menu Screen");

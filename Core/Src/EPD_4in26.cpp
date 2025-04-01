@@ -1,6 +1,6 @@
 
-#include "EPD_4in26.h"
-#include "Debug.h"
+#include <Debug.hpp>
+#include <EPD_4in26.hpp>
 
 #ifdef RTOS
 #include "FreeRTOS.h"

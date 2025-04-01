@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "main.h"
 
 enum class Button {
     Up,
@@ -51,6 +51,7 @@ enum class State {
 	Cancel,
 	IncreaseSetPoint,
 	DecreaseSetPoint,
+	TemperatureUpdate,
 	Delete,
 
 //	UpdateSetPointIncrease,

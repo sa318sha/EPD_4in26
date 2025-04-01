@@ -5,17 +5,18 @@
  *      Author: kobru
  */
 
-#ifndef INC_FRAMEBUFFER_H_
-#define INC_FRAMEBUFFER_H_
+#ifndef INC_FRAMEBUFFER_HPP_
+#define INC_FRAMEBUFFER_HPP_
 
 
 
-#include "DEV_Config.h"
+#include <Debug.hpp>
+#include <DEV_Config.hpp>
+
 #include "../Fonts/fonts.h"
 #include <vector>
 #include <memory>
 #include "FreeRTOSMemory.hpp"
-#include "Debug.h"
 /**
  * Image attributes
 **/
